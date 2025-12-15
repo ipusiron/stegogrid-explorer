@@ -110,6 +110,24 @@ StegoGrid Explorerは、貼り付けた複数行テキストを「文字グリ�
 
 ---
 
+## 📚 代表50語リスト
+
+「代表50語を使用」オプションを有効にすると、以下の英単語が自動的に検索対象となります。
+
+| 3文字 | | | | | | | | | |
+|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| THE | AND | FOR | ARE | BUT | NOT | YOU | ALL | CAN | HAD |
+| HER | WAS | ONE | OUR | OUT | DAY | GET | HAS | HIM | HIS |
+| HOW | MAN | NEW | NOW | OLD | SEE | WAY | WHO | BOY | DID |
+| ITS | LET | PUT | SAY | SHE | TOO | USE | KEY | | |
+
+| 4文字 | | | | | | | | | |
+|-------|------|------|------|------|------|------|------|------|------|
+| CODE | WORD | FIND | HIDE | TEXT | GRID | LINE | OPEN | READ | SEEK |
+| TRUE | DATA | | | | | | | | |
+
+---
+
 ## 🔧 技術仕様
 
 - HTML / CSS / JavaScriptのみで実装
