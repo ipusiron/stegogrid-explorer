@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <title>StegoGrid Explorer - 文字グリッド探索ツール</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>StegoGrid Explorer</h1>
+        <p class="subtitle" data-i18n="subtitle">文字グリッドから隠し単語を全8方向で探索</p>
+      </div>
+      <div class="header-buttons">
+        <button type="button" id="btn-lang" class="btn btn-header" title="Switch Language">
+          <span id="lang-label">EN</span>
+        </button>
+        <button type="button" id="btn-help" class="btn btn-header" title="Help">
+          <span class="btn-icon">?</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="panel-wrapper">
+      <!-- Left Panel: Controls -->
+      <section class="panel panel-input">
+        <div class="form-group">
+          <div class="label-row">
+            <label for="grid-input" data-i18n="gridTextLabel">Grid Text (multi-line)</label>
+            <div class="preset-select-wrapper">
+              <select id="preset-select">
+                <option value="" data-i18n="presetSelect">-- Presets --</option>
+                <option value="horizontal">→↓ Horizontal/Vertical</option>
+                <option value="diagonal1">↘↖ Diagonal (DR/UL)</option>
+                <option value="diagonal2">↙↗ Diagonal (DL/UR)</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="grid-input" rows="10" data-i18n-placeholder="gridTextPlaceholder" placeholder="Paste your text here...&#10;Each line becomes a row in the grid."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="custom-words" data-i18n="customWordsLabel">Custom Words (one per line or comma-separated)</label>
+          <textarea id="custom-words" rows="2" placeholder="SECRET, HIDDEN, MESSAGE"></textarea>
+        </div>
+
+        <fieldset class="form-group form-group-compact">
+          <legend data-i18n="options">Options</legend>
+          <div class="options-grid">
+            <label class="checkbox-label" title="Remove empty lines">
+              <input type="checkbox" id="opt-remove-empty-lines" checked>
+              <span data-i18n="removeEmptyLines">Remove empty lines</span>
+            </label>
+            <label class="checkbox-label" title="Remove spaces">
+              <input type="checkbox" id="opt-remove-spaces" checked>
+              <span data-i18n="removeSpaces">Remove spaces</span>
+            </label>
+            <label class="checkbox-label" title="Use common 50 words">
+              <input type="checkbox" id="opt-common" checked>
+              <span data-i18n="useCommonWords">Common 50 words</span>
+            </label>
+            <label class="checkbox-label" title="Use custom words">
+              <input type="checkbox" id="opt-custom" checked>
+              <span data-i18n="useCustomWords">Custom words</span>
+            </label>
+            <label class="checkbox-label" title="Uppercase normalization">
+              <input type="checkbox" id="opt-uppercase" checked>
+              <span data-i18n="uppercaseNormalization">Uppercase</span>
+            </label>
+            <label class="checkbox-label disabled" title="Non-letters as blocks (always on)">
+              <input type="checkbox" id="opt-blocks" checked disabled>
+              <span data-i18n="nonLettersAsBlocks">Non-letters → blocks</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group form-group-compact">
+          <legend data-i18n="directions">Directions</legend>
+          <div class="direction-grid">
+            <label class="checkbox-label"><input type="checkbox" id="dir-r" checked><span class="dir-arrow">→</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-l" checked><span class="dir-arrow">←</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-d" checked><span class="dir-arrow">↓</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-u" checked><span class="dir-arrow">↑</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-dr" checked><span class="dir-arrow">↘</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-ul" checked><span class="dir-arrow">↖</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-dl" checked><span class="dir-arrow">↙</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-ur" checked><span class="dir-arrow">↗</span></label>
+          </div>
+        </fieldset>
+
+        <div class="btn-group">
+          <button type="button" id="btn-analyze" class="btn btn-primary" data-i18n="analyze">Analyze</button>
+          <button type="button" id="btn-clear" class="btn btn-secondary" data-i18n="clear">Clear</button>
+        </div>
+      </section>
+
+      <!-- Right Panel: Output -->
+      <section class="panel panel-output">
+        <div id="message-area" class="message-area"></div>
+
+        <div id="stats" class="stats hidden">
+          <span><span data-i18n="hits">Hits</span>: <strong id="stat-hits">0</strong></span>
+          <span><span data-i18n="uniqueWords">Unique</span>: <strong id="stat-unique">0</strong></span>
+          <span><span data-i18n="grid">Grid</span>: <strong id="stat-grid">0×0</strong></span>
+        </div>
+
+        <div id="grid-container" class="grid-container"></div>
+
+        <div id="results-section" class="results-section hidden">
+          <h3 data-i18n="results">Results</h3>
+          <div class="table-wrapper">
+            <table id="results-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="word">Word</th>
+                  <th data-i18n="dir">Dir</th>
+                  <th data-i18n="start">Start</th>
+                  <th data-i18n="end">End</th>
+                  <th data-i18n="len">Len</th>
+                </tr>
+              </thead>
+              <tbody id="results-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Help Modal -->
+  <div id="help-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 data-i18n="helpTitle">Help</h2>
+        <button type="button" id="btn-modal-close" class="btn-modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="help-content"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer">
+      🔗 <span data-i18n="footerRepo">GitHub</span>: <a href="https://github.com/ipusiron/stegogrid-explorer" target="_blank">ipusiron/stegogrid-explorer</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
