@@ -28,6 +28,12 @@ test('the interface exposes complete localization hooks', () => {
   assert.match(html, /data-i18n-aria-label="dirRight"/);
   assert.match(script, /document\.documentElement\.lang = currentLang/);
   assert.match(script, /renderStatus\(\);/);
+  for (const id of ['result-filter-word', 'result-filter-direction', 'result-filter-min-length', 'result-sort', 'btn-export-json', 'btn-export-csv', 'hit-detail', 'path-steps']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(script, /renderFilteredView\(\)/);
+  assert.match(script, /serializeResultsJson/);
+  assert.match(script, /serializeResultsCsv/);
 });
 
 test('user-facing DOM rendering does not use innerHTML', () => {
@@ -50,6 +56,8 @@ test('Japanese and English documentation state limits and limitations', () => {
   }
   assert.match(readmeJa, /証明するものではありません/);
   assert.match(readmeEn, /does not prove/);
+  assert.match(readmeJa, /入力した全文は含/);
+  assert.match(readmeEn, /full input text/);
   assert.ok(fs.existsSync(path.join(root, 'assets', 'screenshot.png')));
   assert.ok(fs.existsSync(path.join(root, 'assets', 'en', 'screenshot.png')));
 });

@@ -18,8 +18,8 @@ Open [StegoGrid Explorer on GitHub Pages](https://ipusiron.github.io/stegogrid-e
 
 ## 📸 Screenshot
 
-> ![Searching a diagonal word with StegoGrid Explorer](assets/en/screenshot.png)
-> *Inspecting diagonal words and coordinates in a deterministic preset*
+> ![Filtering results and inspecting a selected path with StegoGrid Explorer](assets/en/screenshot.png)
+> *Filtering matches and inspecting each character and coordinate on a selected path*
 
 ## ✨ Features
 
@@ -29,6 +29,9 @@ Open [StegoGrid Explorer on GitHub Pages](https://ipusiron.github.io/stegogrid-e
 - Preserve case for case-sensitive matching when uppercase normalization is off
 - Treat every non-ASCII-letter code point as a blocking cell
 - Load three deterministic teaching presets
+- Filter by word, direction, and minimum length; sort by detection order, word, descending length, or direction
+- Inspect every character and one-based coordinate on a selected path
+- Save only the visible results as JSON or CSV
 - Use the complete interface in Japanese or English
 - Run locally without external libraries or network requests
 
@@ -62,8 +65,12 @@ Open [StegoGrid Explorer on GitHub Pages](https://ipusiron.github.io/stegogrid-e
 2. Choose search words, preprocessing rules, and directions.
 3. Select **Analyze** or press Ctrl+Enter.
 4. Inspect the highlighted grid and result table.
+5. Filter or sort the results, then select a row to inspect its characters and coordinates.
+6. Save the visible results as JSON or CSV when needed.
 
 A preset disables the common list and enables its custom words, so only the documented teaching targets are searched. Result rows can be selected with a pointer or with Enter/Space after moving focus with Tab.
+
+After filtering, the grid highlights, shown count, table, and selected-path detail all use the same visible result set. JSON and CSV files contain visible matches, directions, one-based coordinates, and paths. They do not include the full input text. CSV values with spreadsheet-formula prefixes are neutralized.
 
 ## ⚙️ Limits
 
@@ -86,6 +93,7 @@ A match only shows that the configured character sequence exists on that path. I
 
 - Plain HTML, CSS, and JavaScript
 - Client-side only; no external communication
+- Result files are generated and saved entirely in the browser
 - DOM-independent search core tested with Node's built-in test runner
 - User input rendered with `textContent` and a restrictive Content Security Policy
 - Compatible with HTTP(S) and `file://`
@@ -102,7 +110,8 @@ stegogrid-explorer/
 ├── README.en.md        # This document
 ├── package.json        # Test command
 ├── test/
-│   └── core.test.js    # Core regression tests
+│   ├── core.test.js    # Search, filtering, and export tests
+│   └── docs-ui.test.js # UI, documentation, and security checks
 ├── .github/workflows/
 │   └── test.yml        # GitHub Actions workflow
 ├── assets/
