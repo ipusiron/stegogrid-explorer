@@ -41,6 +41,7 @@ test('a palindrome on the same cells is deduplicated across reverse directions',
   const result = Core.searchGrid(Core.buildGrid('LEVEL'), ['LEVEL'], [Core.DIRECTIONS.R, Core.DIRECTIONS.L]);
   assert.equal(result.hits.length, 1);
   assert.equal(result.hits[0].direction, 'R');
+  assert.deepEqual(result.hits[0].mergedDirections, ['R', 'L']);
 });
 
 test('all eight directions find their expected path', () => {
@@ -82,4 +83,39 @@ test('result limit reports truncation', () => {
   const result = Core.searchGrid(Core.buildGrid('AAAAAAAA'), ['AAA'], [Core.DIRECTIONS.R], limits);
   assert.equal(result.hits.length, 2);
   assert.equal(result.truncated, true);
+});
+
+test('filters and stable sorting work without mutating source hits', () => {
+  const source = [
+    { word: 'KEY', direction: 'UR', mergedDirections: ['UR'], length: 3 },
+    { word: 'CODE', direction: 'R', mergedDirections: ['R'], length: 4 },
+    { word: 'LEVEL', direction: 'R', mergedDirections: ['R', 'L'], length: 5 }
+  ];
+  assert.deepEqual(Core.filterAndSortHits(source, { query: 'e', direction: 'L', minLength: 4 }).map((hit) => hit.word), ['LEVEL']);
+  assert.deepEqual(Core.filterAndSortHits(source, { sort: 'lengthDesc' }).map((hit) => hit.word), ['LEVEL', 'CODE', 'KEY']);
+  assert.deepEqual(source.map((hit) => hit.word), ['KEY', 'CODE', 'LEVEL']);
+});
+
+test('JSON and CSV exports use one-based coordinates and omit source text', () => {
+  const hit = {
+    word: 'LEVEL', direction: 'R', mergedDirections: ['R', 'L'], length: 5,
+    start: { r: 0, c: 0 }, end: { r: 0, c: 4 }, path: Array.from({ length: 5 }, (_, c) => ({ r: 0, c }))
+  };
+  const json = JSON.parse(Core.serializeResultsJson([hit], { query: 'LEV', direction: 'L', minLength: 4, sort: 'word' }));
+  assert.equal(json.schemaVersion, 1);
+  assert.deepEqual(json.results[0].start, { row: 1, column: 1 });
+  assert.deepEqual(json.results[0].mergedDirections, ['R', 'L']);
+  assert.equal('sourceText' in json, false);
+  const csv = Core.serializeResultsCsv([hit]);
+  assert.match(csv, /^word,direction,direction_arrow,merged_directions,/);
+  assert.match(csv, /LEVEL,R,→,R\|L,1,1,1,5,5,1:1\|1:2\|1:3\|1:4\|1:5/);
+});
+
+test('CSV export neutralizes spreadsheet formula prefixes', () => {
+  const hit = {
+    word: '=CMD', direction: 'R', mergedDirections: ['R'], length: 4,
+    start: { r: 0, c: 0 }, end: { r: 0, c: 3 },
+    path: Array.from({ length: 4 }, (_, c) => ({ r: 0, c }))
+  };
+  assert.match(Core.serializeResultsCsv([hit]), /\r\n'=CMD,R,/);
 });

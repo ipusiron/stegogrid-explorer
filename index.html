@@ -108,6 +108,7 @@
 
         <div id="stats" class="stats hidden">
           <span><span data-i18n="hits">Hits</span>: <strong id="stat-hits">0</strong></span>
+          <span><span data-i18n="shown">Shown</span>: <strong id="stat-shown">0</strong></span>
           <span><span data-i18n="uniqueWords">Unique</span>: <strong id="stat-unique">0</strong></span>
           <span><span data-i18n="grid">Grid</span>: <strong id="stat-grid">0×0</strong></span>
         </div>
@@ -116,7 +117,65 @@
 
         <div id="results-section" class="results-section hidden">
           <h3 data-i18n="results">Results</h3>
-          <div class="table-wrapper">
+          <div class="result-toolbar" aria-label="Result filters and exports" data-i18n-aria-label="resultToolsLabel">
+            <label class="result-control" for="result-filter-word">
+              <span data-i18n="filterWord">Word contains</span>
+              <input type="search" id="result-filter-word" maxlength="100" data-i18n-placeholder="filterWordPlaceholder" placeholder="e.g. CODE">
+            </label>
+            <label class="result-control" for="result-filter-direction">
+              <span data-i18n="filterDirection">Direction</span>
+              <select id="result-filter-direction">
+                <option value="" data-i18n="allDirections">All</option>
+                <option value="R" data-i18n="dirRight">Right</option>
+                <option value="L" data-i18n="dirLeft">Left</option>
+                <option value="D" data-i18n="dirDown">Down</option>
+                <option value="U" data-i18n="dirUp">Up</option>
+                <option value="DR" data-i18n="dirDownRight">Down-right</option>
+                <option value="UL" data-i18n="dirUpLeft">Up-left</option>
+                <option value="DL" data-i18n="dirDownLeft">Down-left</option>
+                <option value="UR" data-i18n="dirUpRight">Up-right</option>
+              </select>
+            </label>
+            <label class="result-control" for="result-filter-min-length">
+              <span data-i18n="minimumLength">Minimum length</span>
+              <input type="number" id="result-filter-min-length" min="3" max="100" value="3" inputmode="numeric">
+            </label>
+            <label class="result-control" for="result-sort">
+              <span data-i18n="sortBy">Sort by</span>
+              <select id="result-sort">
+                <option value="order" data-i18n="sortOrder">Detection order</option>
+                <option value="word" data-i18n="sortWord">Word</option>
+                <option value="lengthDesc" data-i18n="sortLength">Longest first</option>
+                <option value="direction" data-i18n="sortDirection">Direction</option>
+              </select>
+            </label>
+          </div>
+          <div class="result-actions">
+            <button type="button" id="btn-reset-results" class="btn btn-secondary" data-i18n="resetFilters">Reset filters</button>
+            <button type="button" id="btn-export-json" class="btn btn-secondary" data-i18n="exportJson">Save JSON</button>
+            <button type="button" id="btn-export-csv" class="btn btn-secondary" data-i18n="exportCsv">Save CSV</button>
+          </div>
+          <p id="visible-summary" class="visible-summary" aria-live="polite"></p>
+          <p class="export-note" data-i18n="exportNote">Only the visible matches are saved; the full input text is not included.</p>
+          <p id="no-filter-results" class="empty-results hidden" data-i18n="noFilterResults">No results match the filters.</p>
+
+          <section id="hit-detail" class="hit-detail hidden" aria-labelledby="hit-detail-title">
+            <div class="detail-header">
+              <h3 id="hit-detail-title" data-i18n="pathDetail">Selected path</h3>
+              <button type="button" id="btn-clear-focus" class="btn btn-secondary" data-i18n="clearSelection">Clear selection</button>
+            </div>
+            <dl class="detail-summary">
+              <div><dt data-i18n="word">Word</dt><dd id="detail-word"></dd></div>
+              <div><dt data-i18n="dir">Direction</dt><dd id="detail-directions"></dd></div>
+              <div><dt data-i18n="start">Start</dt><dd id="detail-start"></dd></div>
+              <div><dt data-i18n="end">End</dt><dd id="detail-end"></dd></div>
+              <div><dt data-i18n="len">Length</dt><dd id="detail-length"></dd></div>
+            </dl>
+            <p id="detail-merged-note" class="detail-note hidden"></p>
+            <ol id="path-steps" class="path-steps"></ol>
+          </section>
+
+          <div id="results-table-wrapper" class="table-wrapper">
             <table id="results-table">
               <thead>
                 <tr>

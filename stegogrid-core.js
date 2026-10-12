@@ -135,7 +135,7 @@
     const { grid, width, height } = gridInfo;
     const trie = buildTrie(dictionary);
     const hits = [];
-    const seen = new Set();
+    const seen = new Map();
     let truncated = false;
 
     outer:
@@ -157,16 +157,22 @@
             for (const word of node.words) {
               const wordPath = path.slice();
               const key = canonicalPathKey(word, wordPath);
-              if (seen.has(key)) continue;
-              seen.add(key);
-              hits.push({
+              if (seen.has(key)) {
+                const existing = seen.get(key);
+                if (!existing.mergedDirections.includes(direction.id)) existing.mergedDirections.push(direction.id);
+                continue;
+              }
+              const hit = {
                 word,
                 direction: direction.id,
+                mergedDirections: [direction.id],
                 start: wordPath[0],
                 end: wordPath[wordPath.length - 1],
                 path: wordPath,
                 length: wordPath.length
-              });
+              };
+              seen.set(key, hit);
+              hits.push(hit);
               if (hits.length >= limits.maxResults) {
                 truncated = true;
                 break outer;
@@ -182,6 +188,80 @@
     return { hits, truncated };
   }
 
+  function filterAndSortHits(hits, options = {}) {
+    const query = String(options.query || '').trim().toLowerCase();
+    const direction = String(options.direction || '');
+    const minLength = Math.max(0, Number(options.minLength) || 0);
+    const sort = options.sort || 'order';
+    const indexed = hits.map((hit, index) => ({ hit, index })).filter(({ hit }) => {
+      if (query && !hit.word.toLowerCase().includes(query)) return false;
+      if (direction && !(hit.mergedDirections || [hit.direction]).includes(direction)) return false;
+      return hit.length >= minLength;
+    });
+
+    const directionOrder = Object.keys(DIRECTIONS);
+    indexed.sort((a, b) => {
+      if (sort === 'word') return a.hit.word.localeCompare(b.hit.word) || a.index - b.index;
+      if (sort === 'lengthDesc') return b.hit.length - a.hit.length || a.hit.word.localeCompare(b.hit.word) || a.index - b.index;
+      if (sort === 'direction') return directionOrder.indexOf(a.hit.direction) - directionOrder.indexOf(b.hit.direction) || a.index - b.index;
+      return a.index - b.index;
+    });
+    return indexed.map(({ hit }) => hit);
+  }
+
+  function exportHit(hit) {
+    return {
+      word: hit.word,
+      direction: hit.direction,
+      directionArrow: DIRECTIONS[hit.direction].arrow,
+      mergedDirections: [...(hit.mergedDirections || [hit.direction])],
+      start: { row: hit.start.r + 1, column: hit.start.c + 1 },
+      end: { row: hit.end.r + 1, column: hit.end.c + 1 },
+      length: hit.length,
+      path: hit.path.map(({ r, c }) => ({ row: r + 1, column: c + 1 }))
+    };
+  }
+
+  function serializeResultsJson(hits, filters = {}) {
+    return `${JSON.stringify({
+      schemaVersion: 1,
+      resultCount: hits.length,
+      filters: {
+        query: String(filters.query || ''),
+        direction: String(filters.direction || ''),
+        minLength: Math.max(0, Number(filters.minLength) || 0),
+        sort: String(filters.sort || 'order')
+      },
+      results: hits.map(exportHit)
+    }, null, 2)}\n`;
+  }
+
+  function csvCell(value) {
+    let text = String(value == null ? '' : value);
+    if (/^[=+\-@]/.test(text)) text = `'${text}`;
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }
+
+  function serializeResultsCsv(hits) {
+    const rows = [['word', 'direction', 'direction_arrow', 'merged_directions', 'start_row', 'start_column', 'end_row', 'end_column', 'length', 'path']];
+    for (const hit of hits) {
+      const item = exportHit(hit);
+      rows.push([
+        item.word,
+        item.direction,
+        item.directionArrow,
+        item.mergedDirections.join('|'),
+        item.start.row,
+        item.start.column,
+        item.end.row,
+        item.end.column,
+        item.length,
+        item.path.map(({ row, column }) => `${row}:${column}`).join('|')
+      ]);
+    }
+    return `${rows.map((row) => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
+  }
+
   return {
     LIMITS,
     COMMON_WORDS,
@@ -192,6 +272,9 @@
     buildGrid,
     buildDictionary,
     buildTrie,
-    searchGrid
+    searchGrid,
+    filterAndSortHits,
+    serializeResultsJson,
+    serializeResultsCsv
   };
 });

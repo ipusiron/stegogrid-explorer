@@ -14,8 +14,13 @@ const TRANSLATIONS = {
     useCommonWords: '代表50語を使用', useCustomWords: '指定単語を使用', uppercaseNormalization: '大文字に正規化',
     nonLettersAsBlocks: '非英字をブロック扱い', blocksAlwaysOn: '非英字をブロック扱い（常に有効）', directions: '探索方向',
     dirRight: '右方向', dirLeft: '左方向', dirDown: '下方向', dirUp: '上方向', dirDownRight: '右下方向', dirUpLeft: '左上方向', dirDownLeft: '左下方向', dirUpRight: '右上方向',
-    analyze: '解析', clear: 'クリア', hits: 'ヒット数', uniqueWords: 'ユニーク語', grid: 'グリッド', results: '結果一覧',
+    analyze: '解析', clear: 'クリア', hits: 'ヒット数', shown: '表示中', uniqueWords: 'ユニーク語', grid: 'グリッド', results: '結果一覧',
     word: '単語', dir: '方向', start: '開始', end: '終了', len: '長さ', helpTitle: 'ヘルプ', closeHelp: 'ヘルプを閉じる', switchLanguage: '英語に切り替える',
+    resultToolsLabel: '結果の絞り込みと出力', filterWord: '単語を含む', filterWordPlaceholder: '例: CODE', filterDirection: '方向', allDirections: 'すべて', minimumLength: '最小文字数',
+    sortBy: '並び順', sortOrder: '検出順', sortWord: '単語順', sortLength: '長い順', sortDirection: '方向順', resetFilters: '絞り込み解除',
+    exportJson: 'JSON保存', exportCsv: 'CSV保存', exportNote: '保存対象は表示中の一致結果だけです。入力した全文は含みません。', noFilterResults: '絞り込み条件に一致する結果はありません。',
+    pathDetail: '選択した経路', clearSelection: '選択解除', mergedDirectionNote: '同じセル列で逆方向にも一致したため、1件にまとめています。', pathStepLabel: '{index}文字目: {char}（{coord}）',
+    visibleSummary: '全{total}件のうち{shown}件を表示', msgExported: '{format}を{count}件保存しました。',
     footerRepo: 'GitHubリポジトリはこちら', msgEnterText: 'グリッドテキストを入力してください。',
     msgNoDictionary: '有効な探索語がありません。代表50語を有効にするか、3文字以上のASCII英字だけで単語を追加してください。',
     msgNoDirection: '少なくとも1つの探索方向を有効にしてください。', msgParseError: '入力からグリッドを構築できませんでした。',
@@ -38,8 +43,13 @@ const TRANSLATIONS = {
     useCommonWords: 'Use 50 common words', useCustomWords: 'Use custom words', uppercaseNormalization: 'Normalize to uppercase',
     nonLettersAsBlocks: 'Treat non-letters as blocks', blocksAlwaysOn: 'Treat non-letters as blocks (always enabled)', directions: 'Search directions',
     dirRight: 'Right', dirLeft: 'Left', dirDown: 'Down', dirUp: 'Up', dirDownRight: 'Down-right', dirUpLeft: 'Up-left', dirDownLeft: 'Down-left', dirUpRight: 'Up-right',
-    analyze: 'Analyze', clear: 'Clear', hits: 'Hits', uniqueWords: 'Unique words', grid: 'Grid', results: 'Results',
+    analyze: 'Analyze', clear: 'Clear', hits: 'Hits', shown: 'Shown', uniqueWords: 'Unique words', grid: 'Grid', results: 'Results',
     word: 'Word', dir: 'Direction', start: 'Start', end: 'End', len: 'Length', helpTitle: 'Help', closeHelp: 'Close help', switchLanguage: 'Switch to Japanese',
+    resultToolsLabel: 'Result filters and exports', filterWord: 'Word contains', filterWordPlaceholder: 'e.g. CODE', filterDirection: 'Direction', allDirections: 'All', minimumLength: 'Minimum length',
+    sortBy: 'Sort by', sortOrder: 'Detection order', sortWord: 'Word', sortLength: 'Longest first', sortDirection: 'Direction', resetFilters: 'Reset filters',
+    exportJson: 'Save JSON', exportCsv: 'Save CSV', exportNote: 'Only the visible matches are saved; the full input text is not included.', noFilterResults: 'No results match the filters.',
+    pathDetail: 'Selected path', clearSelection: 'Clear selection', mergedDirectionNote: 'Reverse directions matched the same cells, so they are combined into one result.', pathStepLabel: 'Character {index}: {char} ({coord})',
+    visibleSummary: 'Showing {shown} of {total}', msgExported: 'Saved {count} results as {format}.',
     footerRepo: 'GitHub repository', msgEnterText: 'Enter grid text.',
     msgNoDictionary: 'There are no valid search words. Enable the common list or add words of at least three ASCII letters.',
     msgNoDirection: 'Enable at least one search direction.', msgParseError: 'The input could not be converted into a grid.',
@@ -58,14 +68,16 @@ const TRANSLATIONS = {
 const HELP_SECTIONS = {
   ja: [
     ['StegoGrid Explorerとは？', ['複数行テキストを文字グリッドとして扱い、ASCII英単語を横・縦・斜めの8方向から探す学習用ツールです。'], []],
-    ['基本的な使い方', [], ['グリッドテキストを入力します。', '必要なら探索単語と方向を指定します。', '「解析」を押すかCtrl+Enterを使います。', '結果行をクリックまたはEnter／Spaceで選ぶと経路を確認できます。']],
+    ['基本的な使い方', [], ['グリッドテキストを入力します。', '必要なら探索単語と方向を指定します。', '「解析」を押すかCtrl+Enterを使います。', '結果行をクリックまたはEnter／Spaceで選ぶと、各文字と1始まりの座標を確認できます。']],
+    ['結果の整理と保存', ['単語・方向・最小文字数で結果を絞り込み、検出順・単語順・長い順・方向順に並べ替えられます。'], ['盤面の強調、件数、一覧、経路詳細は表示中の結果に連動します。', 'JSON／CSVには表示中の一致結果だけを保存し、入力した全文は含めません。']],
     ['処理規則', [], ['大文字化ONではグリッドと辞書を大文字へそろえます。OFFでは大小文字を区別します。', '空白除去は行を維持したままタブ・半角・全角などの横方向の空白を除去します。', 'ASCII英字以外は1コードポイントのブロックとなり、単語はそこをまたぎません。', TRANSLATIONS.ja.limitNote]],
     ['結果の限界', [TRANSLATIONS.ja.caveat], []],
     ['サンプル', ['プリセットは代表50語をOFF、指定単語をONにし、説明した語だけを教材として探索します。'], []]
   ],
   en: [
     ['What is StegoGrid Explorer?', ['This learning tool treats multi-line text as a character grid and searches for ASCII English words in eight horizontal, vertical, and diagonal directions.'], []],
-    ['Basic usage', [], ['Enter grid text.', 'Choose search words and directions if needed.', 'Select Analyze or press Ctrl+Enter.', 'Click a result row, or use Enter/Space, to inspect its path.']],
+    ['Basic usage', [], ['Enter grid text.', 'Choose search words and directions if needed.', 'Select Analyze or press Ctrl+Enter.', 'Click a result row, or use Enter/Space, to inspect every character and its one-based coordinate.']],
+    ['Organize and save results', ['Filter results by word, direction, and minimum length, then sort by detection order, word, descending length, or direction.'], ['Grid highlights, counts, the table, and path details stay synchronized with visible results.', 'JSON and CSV exports contain only visible matches and never include the full input text.']],
     ['Processing rules', [], ['With uppercase normalization on, the grid and dictionary are converted to uppercase. With it off, matching is case-sensitive.', 'Whitespace removal keeps line boundaries while removing tabs, regular spaces, full-width spaces, and other horizontal whitespace.', 'Every non-ASCII-letter code point is one blocking cell, and words cannot cross it.', TRANSLATIONS.en.limitNote]],
     ['Limitations', [TRANSLATIONS.en.caveat], []],
     ['Samples', ['A preset disables the common list and enables its custom words so that only the documented teaching targets are searched.'], []]
@@ -97,13 +109,19 @@ const elements = {
   btnAnalyze: document.getElementById('btn-analyze'), btnClear: document.getElementById('btn-clear'), btnLang: document.getElementById('btn-lang'), btnHelp: document.getElementById('btn-help'),
   helpModal: document.getElementById('help-modal'), helpContent: document.getElementById('help-content'), btnModalClose: document.getElementById('btn-modal-close'), modalOverlay: document.querySelector('.modal-overlay'),
   presetSelect: document.getElementById('preset-select'), messageArea: document.getElementById('message-area'), stats: document.getElementById('stats'),
-  statHits: document.getElementById('stat-hits'), statUnique: document.getElementById('stat-unique'), statGrid: document.getElementById('stat-grid'),
+  statHits: document.getElementById('stat-hits'), statShown: document.getElementById('stat-shown'), statUnique: document.getElementById('stat-unique'), statGrid: document.getElementById('stat-grid'),
   gridContainer: document.getElementById('grid-container'), resultsSection: document.getElementById('results-section'), resultsBody: document.getElementById('results-body'),
+  resultFilterWord: document.getElementById('result-filter-word'), resultFilterDirection: document.getElementById('result-filter-direction'), resultFilterMinLength: document.getElementById('result-filter-min-length'), resultSort: document.getElementById('result-sort'),
+  btnResetResults: document.getElementById('btn-reset-results'), btnExportJson: document.getElementById('btn-export-json'), btnExportCsv: document.getElementById('btn-export-csv'),
+  visibleSummary: document.getElementById('visible-summary'), noFilterResults: document.getElementById('no-filter-results'), resultsTableWrapper: document.getElementById('results-table-wrapper'),
+  hitDetail: document.getElementById('hit-detail'), btnClearFocus: document.getElementById('btn-clear-focus'), detailWord: document.getElementById('detail-word'), detailDirections: document.getElementById('detail-directions'), detailStart: document.getElementById('detail-start'), detailEnd: document.getElementById('detail-end'), detailLength: document.getElementById('detail-length'), detailMergedNote: document.getElementById('detail-merged-note'), pathSteps: document.getElementById('path-steps'),
   directionCheckboxes: Object.fromEntries(Object.keys(DIRECTIONS).map((id) => [id, document.getElementById(`dir-${id.toLowerCase()}`)]))
 };
 
 let currentLang = 'ja';
 let currentHits = [];
+let visibleHits = [];
+let currentGridInfo = null;
 let focusedHitId = null;
 let lastStatus = null;
 let returnFocusElement = null;
@@ -147,7 +165,7 @@ function applyTranslations() {
   document.getElementById('lang-label').textContent = currentLang === 'ja' ? 'EN' : 'JA';
   renderHelp();
   renderStatus();
-  renderResults(currentHits);
+  if (currentGridInfo) renderFilteredView();
 }
 
 function setStatus(key, type = 'info', replacements = {}) {
@@ -210,7 +228,10 @@ function clearOutput() {
   elements.resultsBody.replaceChildren();
   elements.resultsSection.classList.add('hidden');
   elements.stats.classList.add('hidden');
+  elements.hitDetail.classList.add('hidden');
   currentHits = [];
+  visibleHits = [];
+  currentGridInfo = null;
   focusedHitId = null;
 }
 
@@ -256,20 +277,18 @@ function coordinateText(coord) {
 
 function renderResults(hits) {
   elements.resultsBody.replaceChildren();
-  if (!hits.length) { elements.resultsSection.classList.add('hidden'); return; }
-  elements.resultsSection.classList.remove('hidden');
   hits.forEach((hit, index) => {
     const row = document.createElement('tr');
     row.dataset.hitId = hit.id;
     row.tabIndex = 0;
-    row.setAttribute('aria-label', t('resultRowLabel', { word: hit.word, direction: t(`dir${directionKey(hit.direction)}`), start: coordinateText(hit.start), end: coordinateText(hit.end) }));
+    row.setAttribute('aria-label', t('resultRowLabel', { word: hit.word, direction: directionText(hit), start: coordinateText(hit.start), end: coordinateText(hit.end) }));
     const numberCell = document.createElement('td');
     const indicator = document.createElement('span');
     indicator.className = `color-indicator hl-${hit.colorIndex}`;
     indicator.setAttribute('aria-hidden', 'true');
     numberCell.append(indicator, document.createTextNode(String(index + 1)));
     row.appendChild(numberCell);
-    [hit.word, DIRECTIONS[hit.direction].arrow, coordinateText(hit.start), coordinateText(hit.end), String(hit.length)].forEach((value, cellIndex) => {
+    [hit.word, hit.mergedDirections.map((id) => DIRECTIONS[id].arrow).join(' / '), coordinateText(hit.start), coordinateText(hit.end), String(hit.length)].forEach((value, cellIndex) => {
       const cell = document.createElement('td');
       cell.textContent = value;
       if (cellIndex === 0) cell.className = 'word-cell';
@@ -289,11 +308,76 @@ function directionKey(id) {
   return ({ R: 'Right', L: 'Left', D: 'Down', U: 'Up', DR: 'DownRight', UL: 'UpLeft', DL: 'DownLeft', UR: 'UpRight' })[id];
 }
 
-function updateStats(hits, height, width) {
-  elements.statHits.textContent = String(hits.length);
-  elements.statUnique.textContent = String(new Set(hits.map((hit) => hit.word)).size);
+function updateStats(height, width) {
+  elements.statHits.textContent = String(currentHits.length);
+  elements.statShown.textContent = String(visibleHits.length);
+  elements.statUnique.textContent = String(new Set(currentHits.map((hit) => hit.word)).size);
   elements.statGrid.textContent = `${height}×${width}`;
   elements.stats.classList.remove('hidden');
+}
+
+function resultOptions() {
+  return {
+    query: elements.resultFilterWord.value,
+    direction: elements.resultFilterDirection.value,
+    minLength: Number(elements.resultFilterMinLength.value) || 3,
+    sort: elements.resultSort.value
+  };
+}
+
+function resetResultControls() {
+  elements.resultFilterWord.value = '';
+  elements.resultFilterDirection.value = '';
+  elements.resultFilterMinLength.value = '3';
+  elements.resultSort.value = 'order';
+}
+
+function directionText(hit) {
+  return hit.mergedDirections
+    .map((id) => `${DIRECTIONS[id].arrow} ${t(`dir${directionKey(id)}`)}`)
+    .join(' / ');
+}
+
+function renderHitDetail(hit) {
+  if (!hit || !currentGridInfo) {
+    elements.hitDetail.classList.add('hidden');
+    elements.pathSteps.replaceChildren();
+    return;
+  }
+  elements.detailWord.textContent = hit.word;
+  elements.detailDirections.textContent = directionText(hit);
+  elements.detailStart.textContent = coordinateText(hit.start);
+  elements.detailEnd.textContent = coordinateText(hit.end);
+  elements.detailLength.textContent = String(hit.length);
+  const merged = hit.mergedDirections.length > 1;
+  elements.detailMergedNote.textContent = merged ? t('mergedDirectionNote') : '';
+  elements.detailMergedNote.classList.toggle('hidden', !merged);
+  elements.pathSteps.replaceChildren();
+  hit.path.forEach(({ r, c }, index) => {
+    const item = document.createElement('li');
+    const cell = currentGridInfo.grid[r] && currentGridInfo.grid[r][c];
+    const char = cell && cell.type === 'letter' ? cell.char : '';
+    item.textContent = `${char} ${coordinateText({ r, c })}`;
+    item.setAttribute('aria-label', t('pathStepLabel', { index: index + 1, char, coord: coordinateText({ r, c }) }));
+    elements.pathSteps.appendChild(item);
+  });
+  elements.hitDetail.classList.remove('hidden');
+}
+
+function renderFilteredView() {
+  if (!currentGridInfo) return;
+  visibleHits = Core.filterAndSortHits(currentHits, resultOptions());
+  if (focusedHitId && !visibleHits.some((hit) => hit.id === focusedHitId)) focusedHitId = null;
+  renderGrid(currentGridInfo.grid);
+  applyHighlights(visibleHits);
+  renderResults(visibleHits);
+  updateStats(currentGridInfo.height, currentGridInfo.width);
+  elements.visibleSummary.textContent = t('visibleSummary', { shown: visibleHits.length, total: currentHits.length });
+  elements.noFilterResults.classList.toggle('hidden', visibleHits.length !== 0);
+  elements.resultsTableWrapper.classList.toggle('hidden', visibleHits.length === 0);
+  elements.btnExportJson.disabled = visibleHits.length === 0;
+  elements.btnExportCsv.disabled = visibleHits.length === 0;
+  renderHitDetail(focusedHitId ? currentHits.find((hit) => hit.id === focusedHitId) : null);
 }
 
 function toggleHitFocus(hitId) {
@@ -314,12 +398,14 @@ function applyFocus(hitId) {
     row.classList.toggle('dimmed', row.dataset.hitId !== hitId);
     row.setAttribute('aria-selected', row.dataset.hitId === hitId ? 'true' : 'false');
   });
+  renderHitDetail(hit);
 }
 
 function clearFocus() {
   focusedHitId = null;
   elements.gridContainer.querySelectorAll('.grid-cell').forEach((cell) => cell.classList.remove('dimmed'));
   elements.resultsBody.querySelectorAll('tr').forEach((row) => { row.classList.remove('selected', 'dimmed'); row.removeAttribute('aria-selected'); });
+  renderHitDetail(null);
 }
 
 function errorMessage(error) {
@@ -340,11 +426,11 @@ function analyze() {
     const dictionary = Core.buildDictionary({ useCommon: elements.optCommon.checked, useCustom: elements.optCustom.checked, customText: elements.customWords.value, uppercase: elements.optUppercase.checked });
     if (!dictionary.length) { clearOutput(); setStatus('msgNoDictionary', 'error'); return; }
     const result = Core.searchGrid(gridInfo, dictionary, directions);
+    currentGridInfo = gridInfo;
     currentHits = result.hits.map((hit, index) => ({ ...hit, id: `hit-${index}`, colorIndex: index % COLOR_PALETTE_SIZE }));
-    renderGrid(gridInfo.grid);
-    applyHighlights(currentHits);
-    renderResults(currentHits);
-    updateStats(currentHits, gridInfo.height, gridInfo.width);
+    resetResultControls();
+    elements.resultsSection.classList.toggle('hidden', currentHits.length === 0);
+    renderFilteredView();
     if (result.truncated) setStatus('msgTruncated', 'warning', { limit: LIMITS.maxResults });
     else if (!currentHits.length) setStatus('msgNoWords');
   } catch (error) {
@@ -375,8 +461,37 @@ function loadPreset(id) {
   lastStatus.presetId = id;
 }
 
+function downloadText(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function exportResults(format) {
+  if (!visibleHits.length) return;
+  const stamp = new Date().toISOString().slice(0, 10);
+  if (format === 'JSON') {
+    downloadText(`stegogrid-results-${stamp}.json`, Core.serializeResultsJson(visibleHits, resultOptions()), 'application/json;charset=utf-8');
+  } else {
+    downloadText(`stegogrid-results-${stamp}.csv`, `\uFEFF${Core.serializeResultsCsv(visibleHits)}`, 'text/csv;charset=utf-8');
+  }
+  setStatus('msgExported', 'info', { format, count: visibleHits.length });
+}
+
 elements.btnAnalyze.addEventListener('click', analyze);
 elements.btnClear.addEventListener('click', clearAll);
+elements.btnClearFocus.addEventListener('click', clearFocus);
+elements.btnResetResults.addEventListener('click', () => { resetResultControls(); renderFilteredView(); });
+elements.btnExportJson.addEventListener('click', () => exportResults('JSON'));
+elements.btnExportCsv.addEventListener('click', () => exportResults('CSV'));
+[elements.resultFilterWord, elements.resultFilterMinLength].forEach((element) => element.addEventListener('input', renderFilteredView));
+[elements.resultFilterDirection, elements.resultSort].forEach((element) => element.addEventListener('change', renderFilteredView));
 elements.btnLang.addEventListener('click', toggleLanguage);
 elements.btnHelp.addEventListener('click', openHelpModal);
 elements.btnModalClose.addEventListener('click', closeHelpModal);
