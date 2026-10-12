@@ -4,10 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Security Headers -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <title>StegoGrid Explorer - 文字グリッド探索ツール</title>
@@ -21,10 +18,10 @@
         <p class="subtitle" data-i18n="subtitle">文字グリッドから隠し単語を全8方向で探索</p>
       </div>
       <div class="header-buttons">
-        <button type="button" id="btn-lang" class="btn btn-header" title="Switch Language">
+        <button type="button" id="btn-lang" class="btn btn-header" data-i18n-title="switchLanguage" data-i18n-aria-label="switchLanguage" title="言語を切り替える" aria-label="言語を切り替える">
           <span id="lang-label">EN</span>
         </button>
-        <button type="button" id="btn-help" class="btn btn-header" title="Help">
+        <button type="button" id="btn-help" class="btn btn-header" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="ヘルプ" aria-label="ヘルプ">
           <span class="btn-icon">?</span>
         </button>
       </div>
@@ -41,44 +38,44 @@
             <div class="preset-select-wrapper">
               <select id="preset-select">
                 <option value="" data-i18n="presetSelect">-- Presets --</option>
-                <option value="horizontal">→↓ Horizontal/Vertical</option>
-                <option value="diagonal1">↘↖ Diagonal (DR/UL)</option>
-                <option value="diagonal2">↙↗ Diagonal (DL/UR)</option>
+                <option value="horizontal" data-i18n="presetHorizontal">→↓ 横・縦方向</option>
+                <option value="diagonal1" data-i18n="presetDiagonal1">↘↖ 斜め（右下・左上）</option>
+                <option value="diagonal2" data-i18n="presetDiagonal2">↙↗ 斜め（左下・右上）</option>
               </select>
             </div>
           </div>
-          <textarea id="grid-input" rows="10" data-i18n-placeholder="gridTextPlaceholder" placeholder="Paste your text here...&#10;Each line becomes a row in the grid."></textarea>
+          <textarea id="grid-input" rows="10" maxlength="100000" data-i18n-placeholder="gridTextPlaceholder" placeholder="ここにテキストを貼り付けてください...&#10;各行がグリッドの1行になります。"></textarea>
         </div>
 
         <div class="form-group">
           <label for="custom-words" data-i18n="customWordsLabel">Custom Words (one per line or comma-separated)</label>
-          <textarea id="custom-words" rows="2" placeholder="SECRET, HIDDEN, MESSAGE"></textarea>
+          <textarea id="custom-words" rows="2" maxlength="50500" data-i18n-placeholder="customWordsPlaceholder" placeholder="SECRET, HIDDEN, MESSAGE"></textarea>
         </div>
 
         <fieldset class="form-group form-group-compact">
           <legend data-i18n="options">Options</legend>
           <div class="options-grid">
-            <label class="checkbox-label" title="Remove empty lines">
+            <label class="checkbox-label" data-i18n-title="removeEmptyLines">
               <input type="checkbox" id="opt-remove-empty-lines" checked>
               <span data-i18n="removeEmptyLines">Remove empty lines</span>
             </label>
-            <label class="checkbox-label" title="Remove spaces">
+            <label class="checkbox-label" data-i18n-title="removeSpaces">
               <input type="checkbox" id="opt-remove-spaces" checked>
               <span data-i18n="removeSpaces">Remove spaces</span>
             </label>
-            <label class="checkbox-label" title="Use common 50 words">
+            <label class="checkbox-label" data-i18n-title="useCommonWords">
               <input type="checkbox" id="opt-common" checked>
               <span data-i18n="useCommonWords">Common 50 words</span>
             </label>
-            <label class="checkbox-label" title="Use custom words">
+            <label class="checkbox-label" data-i18n-title="useCustomWords">
               <input type="checkbox" id="opt-custom" checked>
               <span data-i18n="useCustomWords">Custom words</span>
             </label>
-            <label class="checkbox-label" title="Uppercase normalization">
+            <label class="checkbox-label" data-i18n-title="uppercaseNormalization">
               <input type="checkbox" id="opt-uppercase" checked>
               <span data-i18n="uppercaseNormalization">Uppercase</span>
             </label>
-            <label class="checkbox-label disabled" title="Non-letters as blocks (always on)">
+            <label class="checkbox-label disabled" data-i18n-title="blocksAlwaysOn">
               <input type="checkbox" id="opt-blocks" checked disabled>
               <span data-i18n="nonLettersAsBlocks">Non-letters → blocks</span>
             </label>
@@ -88,14 +85,14 @@
         <fieldset class="form-group form-group-compact">
           <legend data-i18n="directions">Directions</legend>
           <div class="direction-grid">
-            <label class="checkbox-label"><input type="checkbox" id="dir-r" checked><span class="dir-arrow">→</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-l" checked><span class="dir-arrow">←</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-d" checked><span class="dir-arrow">↓</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-u" checked><span class="dir-arrow">↑</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-dr" checked><span class="dir-arrow">↘</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-ul" checked><span class="dir-arrow">↖</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-dl" checked><span class="dir-arrow">↙</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="dir-ur" checked><span class="dir-arrow">↗</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-r" data-i18n-aria-label="dirRight" checked><span class="dir-arrow" aria-hidden="true">→</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-l" data-i18n-aria-label="dirLeft" checked><span class="dir-arrow" aria-hidden="true">←</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-d" data-i18n-aria-label="dirDown" checked><span class="dir-arrow" aria-hidden="true">↓</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-u" data-i18n-aria-label="dirUp" checked><span class="dir-arrow" aria-hidden="true">↑</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-dr" data-i18n-aria-label="dirDownRight" checked><span class="dir-arrow" aria-hidden="true">↘</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-ul" data-i18n-aria-label="dirUpLeft" checked><span class="dir-arrow" aria-hidden="true">↖</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-dl" data-i18n-aria-label="dirDownLeft" checked><span class="dir-arrow" aria-hidden="true">↙</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="dir-ur" data-i18n-aria-label="dirUpRight" checked><span class="dir-arrow" aria-hidden="true">↗</span></label>
           </div>
         </fieldset>
 
@@ -107,7 +104,7 @@
 
       <!-- Right Panel: Output -->
       <section class="panel panel-output">
-        <div id="message-area" class="message-area"></div>
+        <div id="message-area" class="message-area" aria-live="polite"></div>
 
         <div id="stats" class="stats hidden">
           <span><span data-i18n="hits">Hits</span>: <strong id="stat-hits">0</strong></span>
@@ -140,12 +137,12 @@
   </main>
 
   <!-- Help Modal -->
-  <div id="help-modal" class="modal hidden">
+  <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-title" aria-hidden="true">
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h2 data-i18n="helpTitle">Help</h2>
-        <button type="button" id="btn-modal-close" class="btn-modal-close">&times;</button>
+        <h2 id="help-title" data-i18n="helpTitle">ヘルプ</h2>
+        <button type="button" id="btn-modal-close" class="btn-modal-close" data-i18n-aria-label="closeHelp" aria-label="ヘルプを閉じる">&times;</button>
       </div>
       <div class="modal-body" id="help-content"></div>
     </div>
@@ -153,10 +150,11 @@
 
   <footer>
     <div class="footer">
-      🔗 <span data-i18n="footerRepo">GitHub</span>: <a href="https://github.com/ipusiron/stegogrid-explorer" target="_blank">ipusiron/stegogrid-explorer</a>
+      🔗 <span data-i18n="footerRepo">GitHubリポジトリはこちら</span>: <a href="https://github.com/ipusiron/stegogrid-explorer" target="_blank" rel="noopener noreferrer">ipusiron/stegogrid-explorer</a>
     </div>
   </footer>
 
+  <script src="stegogrid-core.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,272 +1,169 @@
-/**
- * StegoGrid Explorer - Hidden Word Search in Text Grids
- * Searches for words in all 8 directions within a character grid.
- */
+'use strict';
 
-// ============================================================
-// Constants
-// ============================================================
-
-const COMMON_WORDS = [
-  'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HAD',
-  'HER', 'WAS', 'ONE', 'OUR', 'OUT', 'DAY', 'GET', 'HAS', 'HIM', 'HIS',
-  'HOW', 'MAN', 'NEW', 'NOW', 'OLD', 'SEE', 'WAY', 'WHO', 'BOY', 'DID',
-  'ITS', 'LET', 'PUT', 'SAY', 'SHE', 'TOO', 'USE', 'KEY', 'CODE', 'WORD',
-  'FIND', 'HIDE', 'TEXT', 'GRID', 'LINE', 'OPEN', 'READ', 'SEEK', 'TRUE', 'DATA'
-];
-
-const DIRECTIONS = {
-  R:  { id: 'R',  dy: 0,  dx: 1,  arrow: '→', name: 'Right' },
-  L:  { id: 'L',  dy: 0,  dx: -1, arrow: '←', name: 'Left' },
-  D:  { id: 'D',  dy: 1,  dx: 0,  arrow: '↓', name: 'Down' },
-  U:  { id: 'U',  dy: -1, dx: 0,  arrow: '↑', name: 'Up' },
-  DR: { id: 'DR', dy: 1,  dx: 1,  arrow: '↘', name: 'Down-Right' },
-  UL: { id: 'UL', dy: -1, dx: -1, arrow: '↖', name: 'Up-Left' },
-  DL: { id: 'DL', dy: 1,  dx: -1, arrow: '↙', name: 'Down-Left' },
-  UR: { id: 'UR', dy: -1, dx: 1,  arrow: '↗', name: 'Up-Right' }
-};
-
+const Core = window.StegoGridCore;
+const { LIMITS, DIRECTIONS } = Core;
 const COLOR_PALETTE_SIZE = 12;
-
-// ============================================================
-// i18n - Internationalization
-// ============================================================
 
 const TRANSLATIONS = {
   ja: {
-    subtitle: '文字グリッドから隠し単語を全8方向で探索',
-    input: '入力',
-    output: '出力',
-    samplePresets: 'サンプルプリセット',
-    presetSelect: '-- プリセット --',
-    presetHorizontal: '横・縦方向',
-    presetDiagonal1: '斜め（↘↖）',
-    presetDiagonal2: '斜め（↙↗）',
-    gridTextLabel: 'グリッドテキスト（複数行）',
-    gridTextPlaceholder: 'ここにテキストを貼り付けてください...\n各行がグリッドの1行になります。',
-    customWordsLabel: '探索単語（1行1語またはカンマ区切り）',
-    options: 'オプション',
-    preprocessing: '前処理',
-    removeEmptyLines: '空行を除去',
-    removeSpaces: '空白を除去',
-    settings: '設定',
-    useCommonWords: '代表50語を使用',
-    useCustomWords: '指定単語を使用',
-    uppercaseNormalization: '大文字に正規化',
-    nonLettersAsBlocks: '非英字をブロック扱い',
-    directions: '探索方向',
-    dirRight: '右',
-    dirLeft: '左',
-    dirDown: '下',
-    dirUp: '上',
-    dirDownRight: '右下',
-    dirUpLeft: '左上',
-    dirDownLeft: '左下',
-    dirUpRight: '右上',
-    analyze: '解析',
-    clear: 'クリア',
-    hits: 'ヒット数',
-    uniqueWords: 'ユニーク語',
-    grid: 'グリッド',
-    results: '結果一覧',
-    word: '単語',
-    dir: '方向',
-    start: '開始',
-    end: '終了',
-    len: '長さ',
-    helpTitle: 'ヘルプ',
-    footerRepo: 'GitHubリポジトリはこちら',
-    msgEnterText: 'グリッドテキストを入力してください。',
-    msgNoDictionary: '辞書に有効な単語がありません。代表語を有効にするか、単語を追加してください。',
-    msgNoDirection: '少なくとも1つの探索方向を有効にしてください。',
-    msgParseError: '入力からグリッドを構築できませんでした。',
-    msgLargeGrid: '警告: 大きなグリッド（{count}セル）です。解析に時間がかかる場合があります。',
-    msgNoWords: 'グリッド内に単語が見つかりませんでした。',
-    msgLoaded: '読み込み完了: {desc}'
+    subtitle: '文字グリッドから英単語を全8方向で探索', presetSelect: '-- プリセット --',
+    presetHorizontal: '→↓ 横・縦方向', presetDiagonal1: '↘↖ 斜め（右下・左上）', presetDiagonal2: '↙↗ 斜め（左下・右上）',
+    gridTextLabel: 'グリッドテキスト（複数行）', gridTextPlaceholder: 'ここにテキストを貼り付けてください...\n各行がグリッドの1行になります。',
+    customWordsLabel: '探索単語（1行1語またはカンマ区切り）', customWordsPlaceholder: 'SECRET, HIDDEN, MESSAGE',
+    options: 'オプション', removeEmptyLines: '空行を除去', removeSpaces: '横方向の空白を除去',
+    useCommonWords: '代表50語を使用', useCustomWords: '指定単語を使用', uppercaseNormalization: '大文字に正規化',
+    nonLettersAsBlocks: '非英字をブロック扱い', blocksAlwaysOn: '非英字をブロック扱い（常に有効）', directions: '探索方向',
+    dirRight: '右方向', dirLeft: '左方向', dirDown: '下方向', dirUp: '上方向', dirDownRight: '右下方向', dirUpLeft: '左上方向', dirDownLeft: '左下方向', dirUpRight: '右上方向',
+    analyze: '解析', clear: 'クリア', hits: 'ヒット数', uniqueWords: 'ユニーク語', grid: 'グリッド', results: '結果一覧',
+    word: '単語', dir: '方向', start: '開始', end: '終了', len: '長さ', helpTitle: 'ヘルプ', closeHelp: 'ヘルプを閉じる', switchLanguage: '英語に切り替える',
+    footerRepo: 'GitHubリポジトリはこちら', msgEnterText: 'グリッドテキストを入力してください。',
+    msgNoDictionary: '有効な探索語がありません。代表50語を有効にするか、3文字以上のASCII英字だけで単語を追加してください。',
+    msgNoDirection: '少なくとも1つの探索方向を有効にしてください。', msgParseError: '入力からグリッドを構築できませんでした。',
+    msgNoWords: '選択した条件では単語が見つかりませんでした。', msgLoaded: '読み込み完了: {desc}',
+    msgTooManyRows: '行数が上限を超えています（{count}行、上限{limit}行）。解析は実行していません。',
+    msgTooManyColumns: '列数が上限を超えています（{count}列、上限{limit}列）。解析は実行していません。',
+    msgTooManyCells: 'グリッドが上限を超えています（{count}セル、上限{limit}セル）。解析は実行していません。',
+    msgTooManyWords: '指定単語が多すぎます（{count}語、上限{limit}語）。解析は実行していません。',
+    msgWordTooLong: '指定単語「{word}」が長すぎます（{count}文字、上限{limit}文字）。解析は実行していません。',
+    msgTruncated: '結果が{limit}件に達したため、そこで表示を停止しました。条件を絞って再解析してください。',
+    resultRowLabel: '{word}、{direction}、{start}から{end}', limitNote: '上限: 20,000セル、500行、500列、指定語500件、語長100文字、結果5,000件。',
+    caveat: '一致は指定した文字列の存在を示すだけです。隠しメッセージ、作者の意図、ステガノグラフィーの存在を証明しません。短い語は偶然一致しやすくなります。'
   },
   en: {
-    subtitle: 'Explore hidden words in text grids from all 8 directions',
-    input: 'Input',
-    output: 'Output',
-    samplePresets: 'Sample Presets',
-    presetSelect: '-- Presets --',
-    presetHorizontal: 'Horizontal / Vertical',
-    presetDiagonal1: 'Diagonal (DR/UL)',
-    presetDiagonal2: 'Diagonal (DL/UR)',
-    gridTextLabel: 'Grid Text (multi-line)',
-    gridTextPlaceholder: 'Paste your text here...\nEach line becomes a row in the grid.',
-    customWordsLabel: 'Custom Words (one per line or comma-separated)',
-    options: 'Options',
-    preprocessing: 'Pre-processing',
-    removeEmptyLines: 'Remove empty lines',
-    removeSpaces: 'Remove spaces',
-    settings: 'Settings',
-    useCommonWords: 'Use common 50 words',
-    useCustomWords: 'Use custom words',
-    uppercaseNormalization: 'Uppercase normalization',
-    nonLettersAsBlocks: 'Non-letters as blocks',
-    directions: 'Directions',
-    dirRight: 'Right',
-    dirLeft: 'Left',
-    dirDown: 'Down',
-    dirUp: 'Up',
-    dirDownRight: 'Down-Right',
-    dirUpLeft: 'Up-Left',
-    dirDownLeft: 'Down-Left',
-    dirUpRight: 'Up-Right',
-    analyze: 'Analyze',
-    clear: 'Clear',
-    hits: 'Hits',
-    uniqueWords: 'Unique words',
-    grid: 'Grid',
-    results: 'Results',
-    word: 'Word',
-    dir: 'Dir',
-    start: 'Start',
-    end: 'End',
-    len: 'Len',
-    helpTitle: 'Help',
-    footerRepo: 'GitHub Repository',
-    msgEnterText: 'Please enter grid text.',
-    msgNoDictionary: 'No valid words in dictionary. Enable common words or add custom words.',
-    msgNoDirection: 'Please enable at least one search direction.',
-    msgParseError: 'Could not parse grid from input.',
-    msgLargeGrid: 'Warning: Large grid ({count} cells). Analysis may be slow.',
-    msgNoWords: 'No words found in the grid.',
-    msgLoaded: 'Loaded: {desc}'
+    subtitle: 'Search text grids for English words in all 8 directions', presetSelect: '-- Presets --',
+    presetHorizontal: '→↓ Horizontal / vertical', presetDiagonal1: '↘↖ Diagonal (down-right / up-left)', presetDiagonal2: '↙↗ Diagonal (down-left / up-right)',
+    gridTextLabel: 'Grid text (multi-line)', gridTextPlaceholder: 'Paste text here...\nEach line becomes one grid row.',
+    customWordsLabel: 'Search words (one per line or comma-separated)', customWordsPlaceholder: 'SECRET, HIDDEN, MESSAGE',
+    options: 'Options', removeEmptyLines: 'Remove empty lines', removeSpaces: 'Remove horizontal whitespace',
+    useCommonWords: 'Use 50 common words', useCustomWords: 'Use custom words', uppercaseNormalization: 'Normalize to uppercase',
+    nonLettersAsBlocks: 'Treat non-letters as blocks', blocksAlwaysOn: 'Treat non-letters as blocks (always enabled)', directions: 'Search directions',
+    dirRight: 'Right', dirLeft: 'Left', dirDown: 'Down', dirUp: 'Up', dirDownRight: 'Down-right', dirUpLeft: 'Up-left', dirDownLeft: 'Down-left', dirUpRight: 'Up-right',
+    analyze: 'Analyze', clear: 'Clear', hits: 'Hits', uniqueWords: 'Unique words', grid: 'Grid', results: 'Results',
+    word: 'Word', dir: 'Direction', start: 'Start', end: 'End', len: 'Length', helpTitle: 'Help', closeHelp: 'Close help', switchLanguage: 'Switch to Japanese',
+    footerRepo: 'GitHub repository', msgEnterText: 'Enter grid text.',
+    msgNoDictionary: 'There are no valid search words. Enable the common list or add words of at least three ASCII letters.',
+    msgNoDirection: 'Enable at least one search direction.', msgParseError: 'The input could not be converted into a grid.',
+    msgNoWords: 'No words were found with the selected conditions.', msgLoaded: 'Loaded: {desc}',
+    msgTooManyRows: 'The row limit was exceeded ({count} rows; limit {limit}). No analysis was run.',
+    msgTooManyColumns: 'The column limit was exceeded ({count} columns; limit {limit}). No analysis was run.',
+    msgTooManyCells: 'The grid limit was exceeded ({count} cells; limit {limit}). No analysis was run.',
+    msgTooManyWords: 'There are too many custom words ({count}; limit {limit}). No analysis was run.',
+    msgWordTooLong: 'The custom word “{word}” is too long ({count} characters; limit {limit}). No analysis was run.',
+    msgTruncated: 'Display stopped at {limit} results. Narrow the conditions and analyze again.',
+    resultRowLabel: '{word}, {direction}, from {start} to {end}', limitNote: 'Limits: 20,000 cells, 500 rows, 500 columns, 500 custom words, 100 characters per word, and 5,000 results.',
+    caveat: 'A match only shows that the configured character sequence exists. It does not prove a hidden message, authorial intent, or steganography. Short words often match by chance.'
   }
 };
 
-const HELP_CONTENT = {
-  ja: `
-<h3>StegoGrid Explorerとは？</h3>
-<p>複数行のテキストを「文字グリッド」として扱い、横・縦・斜めの全8方向から英単語を探索・可視化するツールです。隠しメッセージ（縦読み・斜め読み・逆読み）の発見に役立ちます。</p>
+const HELP_SECTIONS = {
+  ja: [
+    ['StegoGrid Explorerとは？', ['複数行テキストを文字グリッドとして扱い、ASCII英単語を横・縦・斜めの8方向から探す学習用ツールです。'], []],
+    ['基本的な使い方', [], ['グリッドテキストを入力します。', '必要なら探索単語と方向を指定します。', '「解析」を押すかCtrl+Enterを使います。', '結果行をクリックまたはEnter／Spaceで選ぶと経路を確認できます。']],
+    ['処理規則', [], ['大文字化ONではグリッドと辞書を大文字へそろえます。OFFでは大小文字を区別します。', '空白除去は行を維持したままタブ・半角・全角などの横方向の空白を除去します。', 'ASCII英字以外は1コードポイントのブロックとなり、単語はそこをまたぎません。', TRANSLATIONS.ja.limitNote]],
+    ['結果の限界', [TRANSLATIONS.ja.caveat], []],
+    ['サンプル', ['プリセットは代表50語をOFF、指定単語をONにし、説明した語だけを教材として探索します。'], []]
+  ],
+  en: [
+    ['What is StegoGrid Explorer?', ['This learning tool treats multi-line text as a character grid and searches for ASCII English words in eight horizontal, vertical, and diagonal directions.'], []],
+    ['Basic usage', [], ['Enter grid text.', 'Choose search words and directions if needed.', 'Select Analyze or press Ctrl+Enter.', 'Click a result row, or use Enter/Space, to inspect its path.']],
+    ['Processing rules', [], ['With uppercase normalization on, the grid and dictionary are converted to uppercase. With it off, matching is case-sensitive.', 'Whitespace removal keeps line boundaries while removing tabs, regular spaces, full-width spaces, and other horizontal whitespace.', 'Every non-ASCII-letter code point is one blocking cell, and words cannot cross it.', TRANSLATIONS.en.limitNote]],
+    ['Limitations', [TRANSLATIONS.en.caveat], []],
+    ['Samples', ['A preset disables the common list and enables its custom words so that only the documented teaching targets are searched.'], []]
+  ]
+};
 
-<h3>基本的な使い方</h3>
-<ul>
-  <li><strong>Step 1:</strong> 「グリッドテキスト」に複数行のテキストを貼り付けます</li>
-  <li><strong>Step 2:</strong> 必要に応じて「探索単語」に検出したい単語を追加します</li>
-  <li><strong>Step 3:</strong> 「解析」ボタンをクリック（または <span class="keyboard-hint">Ctrl+Enter</span>）</li>
-  <li><strong>Step 4:</strong> グリッド上のハイライトと結果一覧を確認します</li>
-</ul>
+const PRESETS = {
+  horizontal: {
+    grid: 'THEXOPEN\nXCODEXXX\nXXFINDXX\nXXWORDXX\nSEEKHIDE\nDATAREAD',
+    customWords: 'THE\nOPEN\nCODE\nFIND\nWORD\nSEEK\nHIDE\nDATA\nREAD',
+    description: { ja: 'THE→、OPEN→、CODE→、FIND→、WORD→、SEEK→、HIDE→、DATA→、READ→', en: 'THE→, OPEN→, CODE→, FIND→, WORD→, SEEK→, HIDE→, DATA→, READ→' }
+  },
+  diagonal1: {
+    grid: 'CXXXXXXX\nXOXXXXXX\nXXDXXXXX\nXXXEXXXX\nXXXXHXXX\nXXXXXIXX\nXXXXXXDX\nXXXXXXXE',
+    customWords: 'CODE\nHIDE',
+    description: { ja: 'CODE↘（1,1→4,4）、HIDE↘（5,5→8,8）', en: 'CODE↘ (1,1→4,4), HIDE↘ (5,5→8,8)' }
+  },
+  diagonal2: {
+    grid: 'XXXXXXXE\nXXXXXXDX\nXXXXXOXX\nXXXXCXXX\nXXXYXXXX\nXXEXXXXX\nXKXXXXXX\nXXXXXXXX',
+    customWords: 'CODE\nKEY',
+    description: { ja: 'CODE↗（4,5→1,8）、KEY↗（7,2→5,4）', en: 'CODE↗ (4,5→1,8), KEY↗ (7,2→5,4)' }
+  }
+};
 
-<h3>探索方向</h3>
-<p>8方向すべてを同時に探索できます：</p>
-<ul>
-  <li>横方向: → （右）、← （左）</li>
-  <li>縦方向: ↓ （下）、↑ （上）</li>
-  <li>斜め方向: ↘ ↖ ↙ ↗</li>
-</ul>
-
-<h3>オプション説明</h3>
-<ul>
-  <li><strong>空行を除去:</strong> 空の行を削除してグリッドを詰めます</li>
-  <li><strong>空白を除去:</strong> 各行の空白文字を削除します</li>
-  <li><strong>代表50語を使用:</strong> THE, AND, CODE などの一般的な英単語を検索対象に含めます</li>
-  <li><strong>非英字をブロック扱い:</strong> 空白や記号を「壁」として扱い、単語がそれを跨がないようにします</li>
-</ul>
-
-<h3>結果の見方</h3>
-<ul>
-  <li>見つかった単語はグリッド上で<strong>色分けハイライト</strong>されます</li>
-  <li>結果一覧の行をクリックすると、その単語だけを<strong>フォーカス表示</strong>できます</li>
-  <li>複数の単語が重なるセルは<strong>太い枠線</strong>で表示されます</li>
-</ul>
-
-<h3>活用例</h3>
-<ul>
-  <li><strong>ステガノグラフィー学習:</strong> 縦読み・斜め読みメッセージの作成と検証</li>
-  <li><strong>CTF/パズル:</strong> 暗号文や格子配置の隠しメッセージ探索</li>
-  <li><strong>教育:</strong> 単語探しゲームの作成・解析</li>
-</ul>
-
-<h3>サンプルで試す</h3>
-<p>「サンプルプリセット」から3種類のサンプルを読み込めます。それぞれ異なる方向で単語がヒットするよう設計されています。</p>
-`,
-  en: `
-<h3>What is StegoGrid Explorer?</h3>
-<p>A tool that treats multi-line text as a "character grid" and searches for English words in all 8 directions (horizontal, vertical, diagonal). Useful for discovering hidden messages (vertical reading, diagonal reading, reverse reading).</p>
-
-<h3>Basic Usage</h3>
-<ul>
-  <li><strong>Step 1:</strong> Paste multi-line text into "Grid Text"</li>
-  <li><strong>Step 2:</strong> Optionally add words to detect in "Custom Words"</li>
-  <li><strong>Step 3:</strong> Click "Analyze" (or press <span class="keyboard-hint">Ctrl+Enter</span>)</li>
-  <li><strong>Step 4:</strong> Check the highlighted grid and results list</li>
-</ul>
-
-<h3>Search Directions</h3>
-<p>All 8 directions can be searched simultaneously:</p>
-<ul>
-  <li>Horizontal: → (Right), ← (Left)</li>
-  <li>Vertical: ↓ (Down), ↑ (Up)</li>
-  <li>Diagonal: ↘ ↖ ↙ ↗</li>
-</ul>
-
-<h3>Options Explained</h3>
-<ul>
-  <li><strong>Remove empty lines:</strong> Removes blank lines to compact the grid</li>
-  <li><strong>Remove spaces:</strong> Removes space characters from each line</li>
-  <li><strong>Use common 50 words:</strong> Includes common English words like THE, AND, CODE in search</li>
-  <li><strong>Non-letters as blocks:</strong> Treats spaces and symbols as "walls" that words cannot cross</li>
-</ul>
-
-<h3>Understanding Results</h3>
-<ul>
-  <li>Found words are <strong>color-highlighted</strong> on the grid</li>
-  <li>Click a row in the results to <strong>focus</strong> on that word</li>
-  <li>Cells where multiple words overlap have a <strong>thick border</strong></li>
-</ul>
-
-<h3>Use Cases</h3>
-<ul>
-  <li><strong>Steganography learning:</strong> Create and verify vertical/diagonal reading messages</li>
-  <li><strong>CTF/Puzzles:</strong> Search for hidden messages in ciphers and grid arrangements</li>
-  <li><strong>Education:</strong> Create and analyze word search games</li>
-</ul>
-
-<h3>Try with Samples</h3>
-<p>Load one of 3 samples from "Sample Presets". Each is designed to hit words in different directions.</p>
-`
+const elements = {
+  gridInput: document.getElementById('grid-input'), customWords: document.getElementById('custom-words'),
+  optCommon: document.getElementById('opt-common'), optCustom: document.getElementById('opt-custom'), optUppercase: document.getElementById('opt-uppercase'),
+  optRemoveEmptyLines: document.getElementById('opt-remove-empty-lines'), optRemoveSpaces: document.getElementById('opt-remove-spaces'),
+  btnAnalyze: document.getElementById('btn-analyze'), btnClear: document.getElementById('btn-clear'), btnLang: document.getElementById('btn-lang'), btnHelp: document.getElementById('btn-help'),
+  helpModal: document.getElementById('help-modal'), helpContent: document.getElementById('help-content'), btnModalClose: document.getElementById('btn-modal-close'), modalOverlay: document.querySelector('.modal-overlay'),
+  presetSelect: document.getElementById('preset-select'), messageArea: document.getElementById('message-area'), stats: document.getElementById('stats'),
+  statHits: document.getElementById('stat-hits'), statUnique: document.getElementById('stat-unique'), statGrid: document.getElementById('stat-grid'),
+  gridContainer: document.getElementById('grid-container'), resultsSection: document.getElementById('results-section'), resultsBody: document.getElementById('results-body'),
+  directionCheckboxes: Object.fromEntries(Object.keys(DIRECTIONS).map((id) => [id, document.getElementById(`dir-${id.toLowerCase()}`)]))
 };
 
 let currentLang = 'ja';
+let currentHits = [];
+let focusedHitId = null;
+let lastStatus = null;
+let returnFocusElement = null;
 
 function t(key, replacements = {}) {
-  let text = TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key] || key;
-  for (const [k, v] of Object.entries(replacements)) {
-    text = text.replace(`{${k}}`, v);
-  }
+  let text = TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key;
+  for (const [name, value] of Object.entries(replacements)) text = text.replace(`{${name}}`, String(value));
   return text;
 }
 
+function renderHelp() {
+  elements.helpContent.replaceChildren();
+  for (const [heading, paragraphs, items] of HELP_SECTIONS[currentLang]) {
+    const h3 = document.createElement('h3');
+    h3.textContent = heading;
+    elements.helpContent.appendChild(h3);
+    for (const text of paragraphs) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      elements.helpContent.appendChild(p);
+    }
+    if (items.length) {
+      const ul = document.createElement('ul');
+      for (const text of items) {
+        const li = document.createElement('li');
+        li.textContent = text;
+        ul.appendChild(li);
+      }
+      elements.helpContent.appendChild(ul);
+    }
+  }
+}
+
 function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.dataset.i18n;
-    el.textContent = t(key);
-  });
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach((element) => { element.textContent = t(element.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+  document.querySelectorAll('[data-i18n-title]').forEach((element) => { element.title = t(element.dataset.i18nTitle); });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
+  document.title = currentLang === 'ja' ? 'StegoGrid Explorer - 文字グリッド探索ツール' : 'StegoGrid Explorer - Grid Word Search Tool';
+  document.getElementById('lang-label').textContent = currentLang === 'ja' ? 'EN' : 'JA';
+  renderHelp();
+  renderStatus();
+  renderResults(currentHits);
+}
 
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    const key = el.dataset.i18nPlaceholder;
-    el.placeholder = t(key);
-  });
+function setStatus(key, type = 'info', replacements = {}) {
+  lastStatus = key ? { key, type, replacements } : null;
+  renderStatus();
+}
 
-  // Update page title
-  document.title = currentLang === 'ja'
-    ? 'StegoGrid Explorer - 文字グリッド探索ツール'
-    : 'StegoGrid Explorer - Grid Word Search Tool';
-
-  // Update language button label
-  const langLabel = document.getElementById('lang-label');
-  if (langLabel) {
-    langLabel.textContent = currentLang === 'ja' ? 'EN' : 'JA';
-  }
-
-  // Update help content
-  const helpContent = document.getElementById('help-content');
-  if (helpContent) {
-    helpContent.innerHTML = HELP_CONTENT[currentLang];
-  }
+function renderStatus() {
+  elements.messageArea.replaceChildren();
+  if (!lastStatus) return;
+  const message = document.createElement('div');
+  message.className = `message message-${lastStatus.type}`;
+  const replacements = { ...lastStatus.replacements };
+  if (lastStatus.presetId) replacements.desc = PRESETS[lastStatus.presetId].description[currentLang];
+  message.textContent = t(lastStatus.key, replacements);
+  elements.messageArea.appendChild(message);
 }
 
 function toggleLanguage() {
@@ -275,667 +172,208 @@ function toggleLanguage() {
   applyTranslations();
 }
 
-// ============================================================
-// Sample Presets
-// ============================================================
-
-const PRESETS = {
-  horizontal: {
-    grid: `THEXOPEN
-HCODEXXX
-EXFINDXX
-XXWORDXX
-SEEKHIDE
-DATAREAD`,
-    customWords: 'OPEN\nFIND\nWORD\nSEEK\nDATA\nREAD',
-    description: {
-      ja: 'THE→, CODE↓, FIND→, WORD→, SEEK→, HIDE→, DATA→, READ→',
-      en: 'THE→, CODE↓, FIND→, WORD→, SEEK→, HIDE→, DATA→, READ→'
-    }
-  },
-  diagonal1: {
-    grid: `CXXXXXXX
-XOXXXXXX
-XXDXXXXX
-XXXEXXXX
-XXXXHXXX
-XXXXXIXX
-XXXXXXDX
-XXXXXXXE`,
-    customWords: 'CODE\nHIDE',
-    description: {
-      ja: 'CODE↘ (1,1→4,4), HIDE↘ (5,5→8,8)',
-      en: 'CODE↘ (1,1→4,4), HIDE↘ (5,5→8,8)'
-    }
-  },
-  diagonal2: {
-    grid: `XXXXXXXE
-XXXXXXDX
-XXXXXOXX
-XXXXCXXX
-XXXEXXXX
-XXKXXXXX
-XYXXXXXX
-EXXXXXXX`,
-    customWords: 'CODE\nKEY',
-    description: {
-      ja: 'CODE↗ (4,4→1,8), KEY↗ (7,1→5,3)',
-      en: 'CODE↗ (4,4→1,8), KEY↗ (7,1→5,3)'
-    }
-  }
-};
-
-// ============================================================
-// DOM Elements
-// ============================================================
-
-const elements = {
-  gridInput: document.getElementById('grid-input'),
-  customWords: document.getElementById('custom-words'),
-  optCommon: document.getElementById('opt-common'),
-  optCustom: document.getElementById('opt-custom'),
-  optUppercase: document.getElementById('opt-uppercase'),
-  optBlocks: document.getElementById('opt-blocks'),
-  optRemoveEmptyLines: document.getElementById('opt-remove-empty-lines'),
-  optRemoveSpaces: document.getElementById('opt-remove-spaces'),
-  btnAnalyze: document.getElementById('btn-analyze'),
-  btnClear: document.getElementById('btn-clear'),
-  btnLang: document.getElementById('btn-lang'),
-  btnHelp: document.getElementById('btn-help'),
-  helpModal: document.getElementById('help-modal'),
-  btnModalClose: document.getElementById('btn-modal-close'),
-  modalOverlay: document.querySelector('.modal-overlay'),
-  presetSelect: document.getElementById('preset-select'),
-  messageArea: document.getElementById('message-area'),
-  stats: document.getElementById('stats'),
-  statHits: document.getElementById('stat-hits'),
-  statUnique: document.getElementById('stat-unique'),
-  statGrid: document.getElementById('stat-grid'),
-  gridContainer: document.getElementById('grid-container'),
-  resultsSection: document.getElementById('results-section'),
-  resultsBody: document.getElementById('results-body'),
-  directionCheckboxes: {
-    R: document.getElementById('dir-r'),
-    L: document.getElementById('dir-l'),
-    D: document.getElementById('dir-d'),
-    U: document.getElementById('dir-u'),
-    DR: document.getElementById('dir-dr'),
-    UL: document.getElementById('dir-ul'),
-    DL: document.getElementById('dir-dl'),
-    UR: document.getElementById('dir-ur')
-  }
-};
-
-// ============================================================
-// State
-// ============================================================
-
-let currentHits = [];
-let focusedHitId = null;
-
-// ============================================================
-// Modal Functions
-// ============================================================
+function getFocusableModalElements() {
+  return Array.from(elements.helpModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+}
 
 function openHelpModal() {
+  returnFocusElement = document.activeElement;
   elements.helpModal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  elements.helpModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+  elements.btnModalClose.focus();
 }
 
 function closeHelpModal() {
   elements.helpModal.classList.add('hidden');
-  document.body.style.overflow = '';
+  elements.helpModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  if (returnFocusElement) returnFocusElement.focus();
 }
 
-// ============================================================
-// Utility Functions
-// ============================================================
-
-/**
- * Escape HTML special characters to prevent XSS attacks
- */
-function escapeHtml(str) {
-  if (typeof str !== 'string') return str;
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+function trapModalFocus(event) {
+  if (event.key !== 'Tab' || elements.helpModal.classList.contains('hidden')) return;
+  const focusable = getFocusableModalElements();
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
 }
 
-function isLetter(char) {
-  return /^[A-Za-z]$/.test(char);
+function enabledDirections() {
+  return Object.entries(elements.directionCheckboxes).filter(([, checkbox]) => checkbox.checked).map(([id]) => DIRECTIONS[id]);
 }
 
-function showMessage(text, type = 'info') {
-  const validTypes = ['info', 'error', 'warning'];
-  const safeType = validTypes.includes(type) ? type : 'info';
-  const div = document.createElement('div');
-  div.className = `message message-${safeType}`;
-  div.textContent = text;
-  elements.messageArea.innerHTML = '';
-  elements.messageArea.appendChild(div);
+function clearOutput() {
+  elements.gridContainer.replaceChildren();
+  elements.resultsBody.replaceChildren();
+  elements.resultsSection.classList.add('hidden');
+  elements.stats.classList.add('hidden');
+  currentHits = [];
+  focusedHitId = null;
 }
 
-function clearMessage() {
-  elements.messageArea.innerHTML = '';
-}
-
-function getEnabledDirections() {
-  const enabled = [];
-  for (const [id, checkbox] of Object.entries(elements.directionCheckboxes)) {
-    if (checkbox.checked) {
-      enabled.push(DIRECTIONS[id]);
-    }
-  }
-  return enabled;
-}
-
-// ============================================================
-// Pre-processing
-// ============================================================
-
-function preprocessText(text, removeEmptyLines, removeSpaces) {
-  let lines = text.split('\n');
-
-  if (removeEmptyLines) {
-    lines = lines.filter(line => line.trim().length > 0);
-  }
-
-  if (removeSpaces) {
-    lines = lines.map(line => line.replace(/ /g, ''));
-  }
-
-  return lines.join('\n');
-}
-
-// ============================================================
-// Grid Building
-// ============================================================
-
-function buildGrid(text, uppercase) {
-  const lines = text.split('\n');
-  const height = lines.length;
-  let width = 0;
-
-  for (const line of lines) {
-    if (line.length > width) {
-      width = line.length;
-    }
-  }
-
-  if (height === 0 || width === 0) {
-    return { grid: [], width: 0, height: 0 };
-  }
-
-  const grid = [];
-
-  for (let r = 0; r < height; r++) {
-    const row = [];
-    const line = lines[r] || '';
-
-    for (let c = 0; c < width; c++) {
-      const rawChar = line[c] || '';
-      let char = rawChar;
-
-      if (uppercase && isLetter(char)) {
-        char = char.toUpperCase();
-      }
-
-      if (isLetter(char)) {
-        row.push({ char: char.toUpperCase(), type: 'letter' });
-      } else {
-        row.push({ char: '', type: 'block' });
-      }
-    }
-
-    grid.push(row);
-  }
-
-  return { grid, width, height };
-}
-
-// ============================================================
-// Dictionary Building
-// ============================================================
-
-function buildDictionary(useCommon, useCustom, customText, uppercase) {
-  const wordSet = new Set();
-
-  if (useCommon) {
-    for (const word of COMMON_WORDS) {
-      if (word.length >= 3) {
-        wordSet.add(word.toUpperCase());
-      }
-    }
-  }
-
-  if (useCustom && customText.trim()) {
-    const tokens = customText.split(/[\n,]+/);
-
-    for (let token of tokens) {
-      token = token.trim();
-
-      if (uppercase) {
-        token = token.toUpperCase();
-      }
-
-      if (token.length >= 3 && /^[A-Za-z]+$/.test(token)) {
-        wordSet.add(token.toUpperCase());
-      }
-    }
-  }
-
-  const dict = Array.from(wordSet);
-  dict.sort((a, b) => b.length - a.length || a.localeCompare(b));
-
-  return dict;
-}
-
-// ============================================================
-// Line Generation
-// ============================================================
-
-function generateLine(grid, startR, startC, dy, dx, height, width) {
-  let text = '';
-  const coords = [];
-  let r = startR;
-  let c = startC;
-
-  while (r >= 0 && r < height && c >= 0 && c < width) {
-    const cell = grid[r][c];
-    text += cell.type === 'letter' ? cell.char : '#';
-    coords.push({ r, c });
-    r += dy;
-    c += dx;
-  }
-
-  return { text, coords };
-}
-
-function generateLinesForDirection(grid, direction, height, width) {
-  const lines = [];
-  const { id, dy, dx } = direction;
-  const startPoints = new Set();
-
-  const addStartPoint = (r, c) => {
-    const key = `${r},${c}`;
-    if (!startPoints.has(key)) {
-      startPoints.add(key);
-      const line = generateLine(grid, r, c, dy, dx, height, width);
-      if (line.text.length > 0) {
-        lines.push({ ...line, direction: id });
-      }
-    }
-  };
-
-  switch (id) {
-    case 'R':
-      for (let r = 0; r < height; r++) addStartPoint(r, 0);
-      break;
-    case 'L':
-      for (let r = 0; r < height; r++) addStartPoint(r, width - 1);
-      break;
-    case 'D':
-      for (let c = 0; c < width; c++) addStartPoint(0, c);
-      break;
-    case 'U':
-      for (let c = 0; c < width; c++) addStartPoint(height - 1, c);
-      break;
-    case 'DR':
-      for (let c = 0; c < width; c++) addStartPoint(0, c);
-      for (let r = 1; r < height; r++) addStartPoint(r, 0);
-      break;
-    case 'UL':
-      for (let c = 0; c < width; c++) addStartPoint(height - 1, c);
-      for (let r = 0; r < height - 1; r++) addStartPoint(r, width - 1);
-      break;
-    case 'DL':
-      for (let c = 0; c < width; c++) addStartPoint(0, c);
-      for (let r = 1; r < height; r++) addStartPoint(r, width - 1);
-      break;
-    case 'UR':
-      for (let c = 0; c < width; c++) addStartPoint(height - 1, c);
-      for (let r = 0; r < height - 1; r++) addStartPoint(r, 0);
-      break;
-  }
-
-  return lines;
-}
-
-// ============================================================
-// Word Search
-// ============================================================
-
-function searchLine(line, dictionary) {
-  const hits = [];
-  const { text, coords, direction } = line;
-
-  const segments = [];
-  let segmentStart = 0;
-
-  for (let i = 0; i <= text.length; i++) {
-    if (i === text.length || text[i] === '#') {
-      if (i > segmentStart) {
-        segments.push({
-          text: text.substring(segmentStart, i),
-          offset: segmentStart
-        });
-      }
-      segmentStart = i + 1;
-    }
-  }
-
-  for (const segment of segments) {
-    for (const word of dictionary) {
-      if (word.length > segment.text.length) continue;
-
-      let idx = 0;
-      while ((idx = segment.text.indexOf(word, idx)) !== -1) {
-        const globalStart = segment.offset + idx;
-        const globalEnd = globalStart + word.length - 1;
-
-        const path = [];
-        for (let i = globalStart; i <= globalEnd; i++) {
-          path.push(coords[i]);
-        }
-
-        hits.push({
-          word,
-          direction,
-          start: coords[globalStart],
-          end: coords[globalEnd],
-          path,
-          length: word.length
-        });
-
-        idx += 1;
-      }
-    }
-  }
-
-  return hits;
-}
-
-function performSearch(grid, dictionary, directions, height, width) {
-  const allHits = [];
-  let hitCounter = 0;
-
-  for (const dir of directions) {
-    const lines = generateLinesForDirection(grid, dir, height, width);
-
-    for (const line of lines) {
-      const hits = searchLine(line, dictionary);
-
-      for (const hit of hits) {
-        hit.id = `hit-${String(hitCounter).padStart(4, '0')}`;
-        hit.colorIndex = hitCounter % COLOR_PALETTE_SIZE;
-        allHits.push(hit);
-        hitCounter++;
-      }
-    }
-  }
-
-  return allHits;
-}
-
-// ============================================================
-// Rendering
-// ============================================================
-
-function renderGrid(grid, width) {
-  const container = elements.gridContainer;
-  container.innerHTML = '';
-
-  const gridEl = document.createElement('div');
-  gridEl.className = 'grid';
-  gridEl.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
-
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < width; c++) {
-      const cell = grid[r][c];
-      const cellEl = document.createElement('div');
-      cellEl.className = 'grid-cell';
-      cellEl.dataset.r = r;
-      cellEl.dataset.c = c;
-
-      if (cell.type === 'block') {
-        cellEl.classList.add('block');
-      } else {
-        cellEl.textContent = cell.char;
-      }
-
-      gridEl.appendChild(cellEl);
-    }
-  }
-
-  container.appendChild(gridEl);
+function renderGrid(grid) {
+  elements.gridContainer.replaceChildren();
+  const gridElement = document.createElement('div');
+  gridElement.className = 'grid';
+  grid.forEach((row, r) => {
+    const rowElement = document.createElement('div');
+    rowElement.className = 'grid-row';
+    row.forEach((cell, c) => {
+      const cellElement = document.createElement('div');
+      cellElement.className = `grid-cell${cell.type === 'block' ? ' block' : ''}`;
+      cellElement.dataset.r = r;
+      cellElement.dataset.c = c;
+      if (cell.type === 'letter') cellElement.textContent = cell.char;
+      rowElement.appendChild(cellElement);
+    });
+    gridElement.appendChild(rowElement);
+  });
+  elements.gridContainer.appendChild(gridElement);
 }
 
 function applyHighlights(hits) {
-  const cellHits = new Map();
-
-  for (const hit of hits) {
-    for (const coord of hit.path) {
-      const key = `${coord.r},${coord.c}`;
-      if (!cellHits.has(key)) {
-        cellHits.set(key, []);
-      }
-      cellHits.get(key).push(hit);
-    }
+  const byCell = new Map();
+  hits.forEach((hit) => hit.path.forEach(({ r, c }) => {
+    const key = `${r},${c}`;
+    if (!byCell.has(key)) byCell.set(key, []);
+    byCell.get(key).push(hit);
+  }));
+  for (const [key, hitList] of byCell) {
+    const [r, c] = key.split(',');
+    const cell = elements.gridContainer.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
+    if (!cell) continue;
+    cell.classList.add(`hl-${hitList[hitList.length - 1].colorIndex}`);
+    if (hitList.length > 1) cell.dataset.overlap = 'true';
   }
+}
 
-  for (const [key, hitList] of cellHits) {
-    const [r, c] = key.split(',').map(Number);
-    const cellEl = document.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
-
-    if (cellEl) {
-      const lastHit = hitList[hitList.length - 1];
-      cellEl.classList.add(`hl-${lastHit.colorIndex}`);
-      cellEl.dataset.hitIds = hitList.map(h => h.id).join(',');
-
-      if (hitList.length > 1) {
-        cellEl.dataset.overlap = 'true';
-      }
-    }
-  }
+function coordinateText(coord) {
+  return `(${coord.r + 1}, ${coord.c + 1})`;
 }
 
 function renderResults(hits) {
-  const tbody = elements.resultsBody;
-  tbody.innerHTML = '';
-
-  if (hits.length === 0) {
-    elements.resultsSection.classList.add('hidden');
-    return;
-  }
-
+  elements.resultsBody.replaceChildren();
+  if (!hits.length) { elements.resultsSection.classList.add('hidden'); return; }
   elements.resultsSection.classList.remove('hidden');
-
   hits.forEach((hit, index) => {
-    const tr = document.createElement('tr');
-    tr.dataset.hitId = hit.id;
-
-    // Create cells safely without innerHTML for user data
-    const createCell = (content, className = '') => {
-      const td = document.createElement('td');
-      if (className) td.className = className;
-      td.textContent = content;
-      return td;
-    };
-
-    // First cell with color indicator
-    const td1 = document.createElement('td');
-    const colorSpan = document.createElement('span');
-    colorSpan.className = `color-indicator hl-${hit.colorIndex}`;
-    td1.appendChild(colorSpan);
-    td1.appendChild(document.createTextNode(String(index + 1)));
-    tr.appendChild(td1);
-
-    tr.appendChild(createCell(hit.word, 'word-cell'));
-    tr.appendChild(createCell(DIRECTIONS[hit.direction].arrow, 'dir-cell'));
-    tr.appendChild(createCell(`(${hit.start.r + 1}, ${hit.start.c + 1})`));
-    tr.appendChild(createCell(`(${hit.end.r + 1}, ${hit.end.c + 1})`));
-    tr.appendChild(createCell(hit.length));
-
-    tr.addEventListener('click', () => toggleHitFocus(hit.id));
-
-    tbody.appendChild(tr);
+    const row = document.createElement('tr');
+    row.dataset.hitId = hit.id;
+    row.tabIndex = 0;
+    row.setAttribute('aria-label', t('resultRowLabel', { word: hit.word, direction: t(`dir${directionKey(hit.direction)}`), start: coordinateText(hit.start), end: coordinateText(hit.end) }));
+    const numberCell = document.createElement('td');
+    const indicator = document.createElement('span');
+    indicator.className = `color-indicator hl-${hit.colorIndex}`;
+    indicator.setAttribute('aria-hidden', 'true');
+    numberCell.append(indicator, document.createTextNode(String(index + 1)));
+    row.appendChild(numberCell);
+    [hit.word, DIRECTIONS[hit.direction].arrow, coordinateText(hit.start), coordinateText(hit.end), String(hit.length)].forEach((value, cellIndex) => {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      if (cellIndex === 0) cell.className = 'word-cell';
+      if (cellIndex === 1) cell.className = 'dir-cell';
+      row.appendChild(cell);
+    });
+    row.addEventListener('click', () => toggleHitFocus(hit.id));
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleHitFocus(hit.id); }
+    });
+    elements.resultsBody.appendChild(row);
   });
+  if (focusedHitId) applyFocus(focusedHitId);
+}
+
+function directionKey(id) {
+  return ({ R: 'Right', L: 'Left', D: 'Down', U: 'Up', DR: 'DownRight', UL: 'UpLeft', DL: 'DownLeft', UR: 'UpRight' })[id];
 }
 
 function updateStats(hits, height, width) {
-  const uniqueWords = new Set(hits.map(h => h.word)).size;
-
-  elements.statHits.textContent = hits.length;
-  elements.statUnique.textContent = uniqueWords;
+  elements.statHits.textContent = String(hits.length);
+  elements.statUnique.textContent = String(new Set(hits.map((hit) => hit.word)).size);
   elements.statGrid.textContent = `${height}×${width}`;
   elements.stats.classList.remove('hidden');
 }
 
-// ============================================================
-// Focus Mode
-// ============================================================
-
 function toggleHitFocus(hitId) {
-  if (focusedHitId === hitId) {
-    clearFocus();
-  } else {
-    applyFocus(hitId);
-  }
+  if (focusedHitId === hitId) clearFocus(); else applyFocus(hitId);
 }
 
 function applyFocus(hitId) {
-  focusedHitId = hitId;
-  const hit = currentHits.find(h => h.id === hitId);
+  const hit = currentHits.find((candidate) => candidate.id === hitId);
   if (!hit) return;
-
-  document.querySelectorAll('.grid-cell').forEach(cell => {
-    cell.classList.add('dimmed');
-    cell.classList.remove('focused');
+  focusedHitId = hitId;
+  elements.gridContainer.querySelectorAll('.grid-cell').forEach((cell) => cell.classList.add('dimmed'));
+  hit.path.forEach(({ r, c }) => {
+    const cell = elements.gridContainer.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
+    if (cell) cell.classList.remove('dimmed');
   });
-
-  for (const coord of hit.path) {
-    const cellEl = document.querySelector(`.grid-cell[data-r="${coord.r}"][data-c="${coord.c}"]`);
-    if (cellEl) {
-      cellEl.classList.remove('dimmed');
-      cellEl.classList.add('focused');
-    }
-  }
-
-  document.querySelectorAll('#results-body tr').forEach(tr => {
-    if (tr.dataset.hitId === hitId) {
-      tr.classList.add('selected');
-      tr.classList.remove('dimmed');
-    } else {
-      tr.classList.add('dimmed');
-      tr.classList.remove('selected');
-    }
+  elements.resultsBody.querySelectorAll('tr').forEach((row) => {
+    row.classList.toggle('selected', row.dataset.hitId === hitId);
+    row.classList.toggle('dimmed', row.dataset.hitId !== hitId);
+    row.setAttribute('aria-selected', row.dataset.hitId === hitId ? 'true' : 'false');
   });
 }
 
 function clearFocus() {
   focusedHitId = null;
-
-  document.querySelectorAll('.grid-cell').forEach(cell => {
-    cell.classList.remove('dimmed', 'focused');
-  });
-
-  document.querySelectorAll('#results-body tr').forEach(tr => {
-    tr.classList.remove('selected', 'dimmed');
-  });
+  elements.gridContainer.querySelectorAll('.grid-cell').forEach((cell) => cell.classList.remove('dimmed'));
+  elements.resultsBody.querySelectorAll('tr').forEach((row) => { row.classList.remove('selected', 'dimmed'); row.removeAttribute('aria-selected'); });
 }
 
-// ============================================================
-// Main Actions
-// ============================================================
+function errorMessage(error) {
+  const map = { tooManyRows: 'msgTooManyRows', tooManyColumns: 'msgTooManyColumns', tooManyCells: 'msgTooManyCells', tooManyWords: 'msgTooManyWords', wordTooLong: 'msgWordTooLong' };
+  return { key: map[error.code] || 'msgParseError', details: error.details || {} };
+}
 
 function analyze() {
-  clearMessage();
+  setStatus(null);
   clearFocus();
-
-  let inputText = elements.gridInput.value;
-  const customText = elements.customWords.value;
-  const useCommon = elements.optCommon.checked;
-  const useCustom = elements.optCustom.checked;
-  const useUppercase = elements.optUppercase.checked;
-  const removeEmptyLines = elements.optRemoveEmptyLines.checked;
-  const removeSpaces = elements.optRemoveSpaces.checked;
-  const enabledDirections = getEnabledDirections();
-
-  if (!inputText.trim()) {
-    showMessage(t('msgEnterText'), 'error');
-    elements.gridContainer.innerHTML = '';
-    elements.resultsSection.classList.add('hidden');
-    elements.stats.classList.add('hidden');
-    return;
-  }
-
-  inputText = preprocessText(inputText, removeEmptyLines, removeSpaces);
-
-  const dictionary = buildDictionary(useCommon, useCustom, customText, useUppercase);
-
-  if (dictionary.length === 0) {
-    showMessage(t('msgNoDictionary'), 'error');
-    return;
-  }
-
-  if (enabledDirections.length === 0) {
-    showMessage(t('msgNoDirection'), 'error');
-    return;
-  }
-
-  const { grid, width, height } = buildGrid(inputText, useUppercase);
-
-  if (height === 0 || width === 0) {
-    showMessage(t('msgParseError'), 'error');
-    return;
-  }
-
-  const cellCount = height * width;
-  if (cellCount > 20000) {
-    showMessage(t('msgLargeGrid', { count: cellCount }), 'warning');
-  }
-
-  const hits = performSearch(grid, dictionary, enabledDirections, height, width);
-  currentHits = hits;
-
-  renderGrid(grid, width);
-  applyHighlights(hits);
-  renderResults(hits);
-  updateStats(hits, height, width);
-
-  if (hits.length === 0) {
-    showMessage(t('msgNoWords'), 'info');
-  } else {
-    clearMessage();
+  if (!elements.gridInput.value.trim()) { clearOutput(); setStatus('msgEnterText', 'error'); return; }
+  const directions = enabledDirections();
+  if (!directions.length) { clearOutput(); setStatus('msgNoDirection', 'error'); return; }
+  try {
+    const text = Core.preprocessText(elements.gridInput.value, { removeEmptyLines: elements.optRemoveEmptyLines.checked, removeSpaces: elements.optRemoveSpaces.checked });
+    const gridInfo = Core.buildGrid(text, elements.optUppercase.checked);
+    if (!gridInfo.width || !gridInfo.height) { clearOutput(); setStatus('msgParseError', 'error'); return; }
+    const dictionary = Core.buildDictionary({ useCommon: elements.optCommon.checked, useCustom: elements.optCustom.checked, customText: elements.customWords.value, uppercase: elements.optUppercase.checked });
+    if (!dictionary.length) { clearOutput(); setStatus('msgNoDictionary', 'error'); return; }
+    const result = Core.searchGrid(gridInfo, dictionary, directions);
+    currentHits = result.hits.map((hit, index) => ({ ...hit, id: `hit-${index}`, colorIndex: index % COLOR_PALETTE_SIZE }));
+    renderGrid(gridInfo.grid);
+    applyHighlights(currentHits);
+    renderResults(currentHits);
+    updateStats(currentHits, gridInfo.height, gridInfo.width);
+    if (result.truncated) setStatus('msgTruncated', 'warning', { limit: LIMITS.maxResults });
+    else if (!currentHits.length) setStatus('msgNoWords');
+  } catch (error) {
+    clearOutput();
+    const message = errorMessage(error);
+    setStatus(message.key, 'error', message.details);
   }
 }
 
 function clearAll() {
   elements.gridInput.value = '';
   elements.customWords.value = '';
-  elements.gridContainer.innerHTML = '';
-  elements.resultsBody.innerHTML = '';
-  elements.resultsSection.classList.add('hidden');
-  elements.stats.classList.add('hidden');
-  clearMessage();
-  clearFocus();
-  currentHits = [];
+  elements.presetSelect.value = '';
+  clearOutput();
+  setStatus(null);
 }
 
-function loadPreset(presetId) {
-  const preset = PRESETS[presetId];
+function loadPreset(id) {
+  const preset = PRESETS[id];
   if (!preset) return;
-
   elements.gridInput.value = preset.grid;
   elements.customWords.value = preset.customWords;
-  clearMessage();
-  const desc = preset.description[currentLang] || preset.description.en;
-  showMessage(t('msgLoaded', { desc }), 'info');
+  elements.optCommon.checked = false;
+  elements.optCustom.checked = true;
+  elements.optUppercase.checked = true;
+  clearOutput();
+  setStatus('msgLoaded', 'info', { desc: preset.description[currentLang] });
+  lastStatus.presetId = id;
 }
-
-// ============================================================
-// Event Listeners
-// ============================================================
 
 elements.btnAnalyze.addEventListener('click', analyze);
 elements.btnClear.addEventListener('click', clearAll);
@@ -943,33 +381,15 @@ elements.btnLang.addEventListener('click', toggleLanguage);
 elements.btnHelp.addEventListener('click', openHelpModal);
 elements.btnModalClose.addEventListener('click', closeHelpModal);
 elements.modalOverlay.addEventListener('click', closeHelpModal);
-
-elements.presetSelect.addEventListener('change', (e) => {
-  const presetId = e.target.value;
-  if (presetId) {
-    loadPreset(presetId);
-    e.target.value = '';
-  }
+elements.presetSelect.addEventListener('change', (event) => { if (event.target.value) loadPreset(event.target.value); event.target.value = ''; });
+document.addEventListener('keydown', (event) => {
+  trapModalFocus(event);
+  if (event.key === 'Escape' && !elements.helpModal.classList.contains('hidden')) closeHelpModal();
+  else if (event.key === 'Enter' && event.ctrlKey && elements.helpModal.classList.contains('hidden')) { event.preventDefault(); analyze(); }
 });
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && e.ctrlKey) {
-    e.preventDefault();
-    analyze();
-  }
-  if (e.key === 'Escape' && !elements.helpModal.classList.contains('hidden')) {
-    closeHelpModal();
-  }
-});
-
-// ============================================================
-// Initialization
-// ============================================================
 
 (function init() {
-  const savedLang = localStorage.getItem('stegogrid-lang');
-  if (savedLang && (savedLang === 'ja' || savedLang === 'en')) {
-    currentLang = savedLang;
-  }
+  const saved = localStorage.getItem('stegogrid-lang');
+  if (saved === 'ja' || saved === 'en') currentLang = saved;
   applyTranslations();
 })();

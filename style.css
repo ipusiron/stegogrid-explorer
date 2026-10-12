@@ -47,7 +47,6 @@ header {
 }
 
 .header-content {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,10 +61,8 @@ header {
 }
 
 .header-buttons {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
+  display: flex;
+  gap: 0.5rem;
 }
 
 header h1 {
@@ -79,19 +76,12 @@ header h1 {
   opacity: 0.9;
 }
 
-.header-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Remove default positioning for mobile - handled by absolute positioning above */
-
 .btn-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   background-color: white;
   color: #1a365d;
@@ -141,6 +131,7 @@ header h1 {
 }
 
 .panel {
+  min-width: 0;
   background: white;
   border-radius: 6px;
   padding: 0.75rem;
@@ -184,7 +175,8 @@ label {
   font-size: 0.875rem;
   background-color: #f7fafc;
   cursor: pointer;
-  min-width: 160px;
+  width: 100%;
+  min-width: 0;
 }
 
 .preset-select-wrapper select:hover {
@@ -195,6 +187,10 @@ label {
   outline: none;
   border-color: #4299e1;
   box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.2);
+}
+
+.preset-select-wrapper {
+  width: 100%;
 }
 
 /* Textarea */
@@ -269,14 +265,14 @@ legend {
 /* Direction Grid */
 .direction-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.25rem;
 }
 
 .direction-grid .checkbox-label {
   justify-content: center;
   padding: 0.375rem;
-  min-height: 36px;
+  min-height: 44px;
   background-color: #f7fafc;
   border-radius: 4px;
   transition: background-color 0.15s;
@@ -302,7 +298,7 @@ legend {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .btn:active {
@@ -400,11 +396,17 @@ legend {
 }
 
 .grid {
-  display: inline-grid;
+  display: inline-flex;
+  flex-direction: column;
   gap: 2px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 1rem;
   line-height: 1;
+}
+
+.grid-row {
+  display: flex;
+  gap: 2px;
 }
 
 .grid-cell {
@@ -507,6 +509,11 @@ tbody tr:hover {
   background-color: #f7fafc;
 }
 
+tbody tr:focus-visible {
+  outline: 3px solid #2b6cb0;
+  outline-offset: -3px;
+}
+
 tbody tr.selected {
   background-color: #ebf8ff;
 }
@@ -584,9 +591,24 @@ td.dir-cell {
   font-size: 1.5rem;
   color: #718096;
   cursor: pointer;
-  padding: 0.25rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   line-height: 1;
   border-radius: 4px;
+}
+
+.modal-open {
+  overflow: hidden;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #f6ad55;
+  outline-offset: 2px;
 }
 
 .btn-modal-close:hover {
@@ -681,6 +703,19 @@ footer {
     text-align: center;
   }
 
+  .header-content {
+    position: relative;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .header-buttons {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
   .container {
     padding: 1rem;
     max-width: 700px;
@@ -692,6 +727,19 @@ footer {
 
   .options-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .direction-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .preset-select-wrapper {
+    width: auto;
+  }
+
+  .preset-select-wrapper select {
+    width: auto;
+    min-width: 160px;
   }
 
   .grid-cell {
