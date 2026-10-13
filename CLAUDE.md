@@ -20,7 +20,9 @@ Open `index.html` directly in a browser for local development. No build step req
 
 - `index.html` - Main HTML structure with input panel and output panel
 - `style.css` - Mobile-first responsive CSS (breakpoints at 600px and 900px)
-- `script.js` - Core logic including grid parsing, 8-direction search, and rendering
+- `stegogrid-core.js` - DOM-independent grid search, result export, and seeded experiment core
+- `script.js` - UI state, rendering, localization, and browser downloads
+- `test/` - Node built-in regression tests
 
 ## Architecture
 
@@ -30,10 +32,16 @@ Open `index.html` directly in a browser for local development. No build step req
 - Grid is padded to rectangular shape (max line width)
 
 ### Search Algorithm
-- Lines are generated for each of 8 directions from appropriate start points
-- Each line is split by block cells into segments
-- Dictionary words are searched within each segment using indexOf
-- Hits record word, direction, start/end coordinates, and full path
+- A trie indexes the selected dictionary
+- Each cell is scanned in each enabled direction until a block, boundary, or trie mismatch
+- Hits record word, merged reverse directions, start/end coordinates, and full path
+- Palindromes on the same cells are deduplicated across reverse directions
+
+### Chance-match Experiment
+- FNV-1a seed hashing and Mulberry32 generation are versioned as `fnv1a-mulberry32-v1`
+- Uniform A-Z grids search the built-in 50 words in all eight directions
+- Three-letter and four-or-more-letter results are summarized separately
+- The hard work limit is 250,000 generated cells
 
 ### Direction Definitions (script.js `DIRECTIONS` object)
 | ID | Arrow | dy | dx | Start Points |

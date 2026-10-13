@@ -21,6 +21,18 @@ const TRANSLATIONS = {
     exportJson: 'JSON保存', exportCsv: 'CSV保存', exportNote: '保存対象は表示中の一致結果だけです。入力した全文は含みません。', noFilterResults: '絞り込み条件に一致する結果はありません。',
     pathDetail: '選択した経路', clearSelection: '選択解除', mergedDirectionNote: '同じセル列で逆方向にも一致したため、1件にまとめています。', pathStepLabel: '{index}文字目: {char}（{coord}）',
     visibleSummary: '全{total}件のうち{shown}件を表示', msgExported: '{format}を{count}件保存しました。',
+    toolTabsLabel: 'ツールのモード', tabExplorer: 'グリッド探索', tabExperiment: '偶然一致の実験',
+    experimentTitle: '偶然一致の実験', experimentIntro: '再現可能なランダムA-Zグリッドを生成し、代表50語の3文字語と4文字以上の語が偶然現れる頻度を比較します。',
+    experimentCaveat: '選んだ条件での経験的な比較です。隠しメッセージの存在確率を計算したり、作者の意図を証明したりするものではありません。',
+    experimentSeed: 'シード', experimentRows: '行数', experimentColumns: '列数', experimentTrials: '試行回数', experimentAlphabet: '文字集合', experimentDictionary: '辞書', experimentDictionaryValue: '代表50語',
+    experimentDirections: '探索方向', experimentDirectionsValue: '全8方向', experimentLimit: '処理上限', experimentLimitValue: '生成セル合計250,000個', runExperiment: '実験する', exportExperiment: '再現用JSONを保存',
+    experimentResults: '実験結果', threeLetterWords: '3文字語', fourPlusWords: '4文字以上の語', trialsWithMatch: '1件以上一致した試行', totalMatches: '総一致数',
+    experimentInterpretation: '割合は、1件以上一致したランダムグリッドの比率です。理論確率や検知スコアではありません。', topMatchedWords: '一致回数の多い語', matchCount: '一致数',
+    noExperimentMatches: 'この試行では代表50語の一致がありませんでした。', firstGridSample: '最初に生成したグリッド', sampleHitSummary: '最初のグリッド: {count}件一致（{words}）', sampleNoHits: '最初のグリッド: 一致なし',
+    experimentSummary: 'シード「{seed}」で{rows}×{columns}を{trials}回生成（合計{cells}セル）', fingerprintLabel: '再現ID: {fingerprint}', msgExperimentDone: '同じ条件とシードで同じ結果を再現できます。',
+    msgExperimentInvalid: '{field}は{min}〜{max}の整数で指定してください。', msgExperimentTooLarge: '生成セル合計が上限を超えています（{count}個、上限{limit}個）。行・列・試行回数を減らしてください。',
+    msgExperimentSeedTooLong: 'シードが長すぎます（{count}文字、上限{limit}文字）。',
+    msgExperimentExported: '再現用JSONを保存しました。',
     footerRepo: 'GitHubリポジトリはこちら', msgEnterText: 'グリッドテキストを入力してください。',
     msgNoDictionary: '有効な探索語がありません。代表50語を有効にするか、3文字以上のASCII英字だけで単語を追加してください。',
     msgNoDirection: '少なくとも1つの探索方向を有効にしてください。', msgParseError: '入力からグリッドを構築できませんでした。',
@@ -50,6 +62,18 @@ const TRANSLATIONS = {
     exportJson: 'Save JSON', exportCsv: 'Save CSV', exportNote: 'Only the visible matches are saved; the full input text is not included.', noFilterResults: 'No results match the filters.',
     pathDetail: 'Selected path', clearSelection: 'Clear selection', mergedDirectionNote: 'Reverse directions matched the same cells, so they are combined into one result.', pathStepLabel: 'Character {index}: {char} ({coord})',
     visibleSummary: 'Showing {shown} of {total}', msgExported: 'Saved {count} results as {format}.',
+    toolTabsLabel: 'Tool modes', tabExplorer: 'Grid search', tabExperiment: 'Chance-match experiment',
+    experimentTitle: 'Chance-match experiment', experimentIntro: 'Generate reproducible random A-Z grids and compare how often three-letter and longer words from the built-in 50-word list appear by chance.',
+    experimentCaveat: 'This is an empirical comparison under the selected conditions. It does not calculate the probability of a hidden message or prove authorial intent.',
+    experimentSeed: 'Seed', experimentRows: 'Rows', experimentColumns: 'Columns', experimentTrials: 'Trials', experimentAlphabet: 'Alphabet', experimentDictionary: 'Dictionary', experimentDictionaryValue: 'Built-in 50 words',
+    experimentDirections: 'Directions', experimentDirectionsValue: 'All 8 directions', experimentLimit: 'Work limit', experimentLimitValue: '250,000 generated cells', runExperiment: 'Run experiment', exportExperiment: 'Save reproducibility JSON',
+    experimentResults: 'Experiment results', threeLetterWords: 'Three-letter words', fourPlusWords: 'Words of four or more letters', trialsWithMatch: 'Trials with at least one match', totalMatches: 'Total matches',
+    experimentInterpretation: 'The rate is the share of random grids with at least one match. It is not a theoretical probability or a detection score.', topMatchedWords: 'Most frequent matches', matchCount: 'Matches',
+    noExperimentMatches: 'No word from the built-in list matched in these trials.', firstGridSample: 'First generated grid', sampleHitSummary: 'First grid: {count} matches ({words})', sampleNoHits: 'First grid: no matches',
+    experimentSummary: 'Generated {trials} grids of {rows}×{columns} with seed “{seed}” ({cells} cells total)', fingerprintLabel: 'Reproduction ID: {fingerprint}', msgExperimentDone: 'The same seed and conditions reproduce the same result.',
+    msgExperimentInvalid: 'Enter {field} as an integer from {min} to {max}.', msgExperimentTooLarge: 'The generated-cell total exceeds the limit ({count}; limit {limit}). Reduce rows, columns, or trials.',
+    msgExperimentSeedTooLong: 'The seed is too long ({count} characters; limit {limit}).',
+    msgExperimentExported: 'Saved the reproducibility JSON.',
     footerRepo: 'GitHub repository', msgEnterText: 'Enter grid text.',
     msgNoDictionary: 'There are no valid search words. Enable the common list or add words of at least three ASCII letters.',
     msgNoDirection: 'Enable at least one search direction.', msgParseError: 'The input could not be converted into a grid.',
@@ -70,6 +94,7 @@ const HELP_SECTIONS = {
     ['StegoGrid Explorerとは？', ['複数行テキストを文字グリッドとして扱い、ASCII英単語を横・縦・斜めの8方向から探す学習用ツールです。'], []],
     ['基本的な使い方', [], ['グリッドテキストを入力します。', '必要なら探索単語と方向を指定します。', '「解析」を押すかCtrl+Enterを使います。', '結果行をクリックまたはEnter／Spaceで選ぶと、各文字と1始まりの座標を確認できます。']],
     ['結果の整理と保存', ['単語・方向・最小文字数で結果を絞り込み、検出順・単語順・長い順・方向順に並べ替えられます。'], ['盤面の強調、件数、一覧、経路詳細は表示中の結果に連動します。', 'JSON／CSVには表示中の一致結果だけを保存し、入力した全文は含めません。']],
+    ['偶然一致の実験', ['同じシード・行数・列数・試行回数なら、同じランダムグリッドと集計結果を再現できます。'], ['代表50語を全8方向で探索し、3文字語と4文字以上の語を比較します。', '割合は1件以上一致した試行の比率であり、理論確率、検知率、隠しメッセージの存在確率ではありません。', '生成セル合計は250,000個までです。']],
     ['処理規則', [], ['大文字化ONではグリッドと辞書を大文字へそろえます。OFFでは大小文字を区別します。', '空白除去は行を維持したままタブ・半角・全角などの横方向の空白を除去します。', 'ASCII英字以外は1コードポイントのブロックとなり、単語はそこをまたぎません。', TRANSLATIONS.ja.limitNote]],
     ['結果の限界', [TRANSLATIONS.ja.caveat], []],
     ['サンプル', ['プリセットは代表50語をOFF、指定単語をONにし、説明した語だけを教材として探索します。'], []]
@@ -78,6 +103,7 @@ const HELP_SECTIONS = {
     ['What is StegoGrid Explorer?', ['This learning tool treats multi-line text as a character grid and searches for ASCII English words in eight horizontal, vertical, and diagonal directions.'], []],
     ['Basic usage', [], ['Enter grid text.', 'Choose search words and directions if needed.', 'Select Analyze or press Ctrl+Enter.', 'Click a result row, or use Enter/Space, to inspect every character and its one-based coordinate.']],
     ['Organize and save results', ['Filter results by word, direction, and minimum length, then sort by detection order, word, descending length, or direction.'], ['Grid highlights, counts, the table, and path details stay synchronized with visible results.', 'JSON and CSV exports contain only visible matches and never include the full input text.']],
+    ['Chance-match experiment', ['The same seed, rows, columns, and trial count reproduce the same random grids and summary.'], ['The built-in 50 words are searched in all eight directions and compared as three-letter versus four-or-more-letter groups.', 'The rate is the share of trials with at least one match, not a theoretical probability, detection rate, or probability of a hidden message.', 'The generated-cell total is limited to 250,000.']],
     ['Processing rules', [], ['With uppercase normalization on, the grid and dictionary are converted to uppercase. With it off, matching is case-sensitive.', 'Whitespace removal keeps line boundaries while removing tabs, regular spaces, full-width spaces, and other horizontal whitespace.', 'Every non-ASCII-letter code point is one blocking cell, and words cannot cross it.', TRANSLATIONS.en.limitNote]],
     ['Limitations', [TRANSLATIONS.en.caveat], []],
     ['Samples', ['A preset disables the common list and enables its custom words so that only the documented teaching targets are searched.'], []]
@@ -115,6 +141,12 @@ const elements = {
   btnResetResults: document.getElementById('btn-reset-results'), btnExportJson: document.getElementById('btn-export-json'), btnExportCsv: document.getElementById('btn-export-csv'),
   visibleSummary: document.getElementById('visible-summary'), noFilterResults: document.getElementById('no-filter-results'), resultsTableWrapper: document.getElementById('results-table-wrapper'),
   hitDetail: document.getElementById('hit-detail'), btnClearFocus: document.getElementById('btn-clear-focus'), detailWord: document.getElementById('detail-word'), detailDirections: document.getElementById('detail-directions'), detailStart: document.getElementById('detail-start'), detailEnd: document.getElementById('detail-end'), detailLength: document.getElementById('detail-length'), detailMergedNote: document.getElementById('detail-merged-note'), pathSteps: document.getElementById('path-steps'),
+  tabExplorer: document.getElementById('tab-explorer'), tabExperiment: document.getElementById('tab-experiment'), panelExplorer: document.getElementById('panel-explorer'), panelExperiment: document.getElementById('panel-experiment'),
+  experimentSeed: document.getElementById('experiment-seed'), experimentRows: document.getElementById('experiment-rows'), experimentColumns: document.getElementById('experiment-columns'), experimentTrials: document.getElementById('experiment-trials'),
+  btnRunExperiment: document.getElementById('btn-run-experiment'), btnExportExperiment: document.getElementById('btn-export-experiment'), experimentMessage: document.getElementById('experiment-message'), experimentResults: document.getElementById('experiment-results'),
+  experimentFingerprint: document.getElementById('experiment-fingerprint'), experimentSummary: document.getElementById('experiment-summary'), experimentThreeRate: document.getElementById('experiment-three-rate'), experimentThreeTrials: document.getElementById('experiment-three-trials'), experimentThreeTotal: document.getElementById('experiment-three-total'),
+  experimentFourRate: document.getElementById('experiment-four-rate'), experimentFourTrials: document.getElementById('experiment-four-trials'), experimentFourTotal: document.getElementById('experiment-four-total'),
+  experimentTopBody: document.getElementById('experiment-top-body'), experimentTopWrapper: document.getElementById('experiment-top-wrapper'), experimentNoTop: document.getElementById('experiment-no-top'), experimentSampleGrid: document.getElementById('experiment-sample-grid'), experimentSampleHits: document.getElementById('experiment-sample-hits'),
   directionCheckboxes: Object.fromEntries(Object.keys(DIRECTIONS).map((id) => [id, document.getElementById(`dir-${id.toLowerCase()}`)]))
 };
 
@@ -125,6 +157,9 @@ let currentGridInfo = null;
 let focusedHitId = null;
 let lastStatus = null;
 let returnFocusElement = null;
+let activeToolTab = 'explorer';
+let lastExperiment = null;
+let lastExperimentMessage = null;
 
 function t(key, replacements = {}) {
   let text = TRANSLATIONS[currentLang][key] || TRANSLATIONS.en[key] || key;
@@ -155,6 +190,109 @@ function renderHelp() {
   }
 }
 
+function setActiveToolTab(name, moveFocus = false) {
+  activeToolTab = name === 'experiment' ? 'experiment' : 'explorer';
+  const experimentActive = activeToolTab === 'experiment';
+  elements.tabExplorer.classList.toggle('active', !experimentActive);
+  elements.tabExperiment.classList.toggle('active', experimentActive);
+  elements.tabExplorer.setAttribute('aria-selected', experimentActive ? 'false' : 'true');
+  elements.tabExperiment.setAttribute('aria-selected', experimentActive ? 'true' : 'false');
+  elements.tabExplorer.tabIndex = experimentActive ? -1 : 0;
+  elements.tabExperiment.tabIndex = experimentActive ? 0 : -1;
+  elements.panelExplorer.classList.toggle('hidden', experimentActive);
+  elements.panelExperiment.classList.toggle('hidden', !experimentActive);
+  if (moveFocus) (experimentActive ? elements.tabExperiment : elements.tabExplorer).focus();
+}
+
+function experimentFieldName(name) {
+  return t(({ rows: 'experimentRows', columns: 'experimentColumns', trials: 'experimentTrials' })[name] || 'experimentTrials');
+}
+
+function renderExperimentMessage() {
+  elements.experimentMessage.replaceChildren();
+  if (!lastExperimentMessage) return;
+  const message = document.createElement('div');
+  message.className = `message message-${lastExperimentMessage.type}`;
+  message.textContent = t(lastExperimentMessage.key, lastExperimentMessage.replacements);
+  elements.experimentMessage.appendChild(message);
+}
+
+function setExperimentMessage(key, type = 'info', replacements = {}) {
+  lastExperimentMessage = key ? { key, type, replacements } : null;
+  renderExperimentMessage();
+}
+
+function formatRate(rate) {
+  return new Intl.NumberFormat(currentLang === 'ja' ? 'ja-JP' : 'en-US', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(rate);
+}
+
+function renderExperiment() {
+  renderExperimentMessage();
+  if (!lastExperiment) return;
+  const { conditions, groups, topWords, sample, fingerprint } = lastExperiment;
+  elements.experimentSummary.textContent = t('experimentSummary', { seed: conditions.seed, rows: conditions.rows, columns: conditions.columns, trials: conditions.trials, cells: conditions.generatedCells.toLocaleString(currentLang === 'ja' ? 'ja-JP' : 'en-US') });
+  elements.experimentFingerprint.textContent = t('fingerprintLabel', { fingerprint });
+  elements.experimentThreeRate.textContent = formatRate(groups.three.trialRate);
+  elements.experimentThreeTrials.textContent = `${groups.three.trialsWithMatch} / ${conditions.trials}`;
+  elements.experimentThreeTotal.textContent = String(groups.three.totalMatches);
+  elements.experimentFourRate.textContent = formatRate(groups.fourPlus.trialRate);
+  elements.experimentFourTrials.textContent = `${groups.fourPlus.trialsWithMatch} / ${conditions.trials}`;
+  elements.experimentFourTotal.textContent = String(groups.fourPlus.totalMatches);
+  elements.experimentTopBody.replaceChildren();
+  topWords.forEach((item) => {
+    const row = document.createElement('tr');
+    [item.word, String(item.length), String(item.count)].forEach((value) => {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.appendChild(cell);
+    });
+    elements.experimentTopBody.appendChild(row);
+  });
+  elements.experimentNoTop.classList.toggle('hidden', topWords.length !== 0);
+  elements.experimentTopWrapper.classList.toggle('hidden', topWords.length === 0);
+  elements.experimentSampleGrid.textContent = sample.lines.join('\n');
+  elements.experimentSampleHits.textContent = sample.hits.length
+    ? t('sampleHitSummary', { count: sample.hits.length, words: sample.hits.map((hit) => `${hit.word}${hit.directionArrow}`).join(', ') })
+    : t('sampleNoHits');
+  elements.experimentResults.classList.remove('hidden');
+  elements.btnExportExperiment.disabled = false;
+}
+
+function runExperiment() {
+  setExperimentMessage(null);
+  try {
+    lastExperiment = Core.runChanceExperiment({
+      seed: elements.experimentSeed.value,
+      rows: elements.experimentRows.value,
+      columns: elements.experimentColumns.value,
+      trials: elements.experimentTrials.value
+    });
+    elements.experimentSeed.value = lastExperiment.conditions.seed;
+    renderExperiment();
+    setExperimentMessage('msgExperimentDone');
+  } catch (error) {
+    lastExperiment = null;
+    elements.experimentResults.classList.add('hidden');
+    elements.btnExportExperiment.disabled = true;
+    if (error.code === 'invalidExperimentValue') {
+      setExperimentMessage('msgExperimentInvalid', 'error', { field: experimentFieldName(error.details.name), min: error.details.min, max: error.details.max });
+    } else if (error.code === 'experimentTooLarge') {
+      setExperimentMessage('msgExperimentTooLarge', 'error', error.details);
+    } else if (error.code === 'experimentSeedTooLong') {
+      setExperimentMessage('msgExperimentSeedTooLong', 'error', error.details);
+    } else {
+      setExperimentMessage('msgParseError', 'error');
+    }
+  }
+}
+
+function exportExperiment() {
+  if (!lastExperiment) return;
+  const stamp = new Date().toISOString().slice(0, 10);
+  downloadText(`stegogrid-experiment-${stamp}.json`, Core.serializeExperimentJson(lastExperiment), 'application/json;charset=utf-8');
+  setExperimentMessage('msgExperimentExported');
+}
+
 function applyTranslations() {
   document.documentElement.lang = currentLang;
   document.querySelectorAll('[data-i18n]').forEach((element) => { element.textContent = t(element.dataset.i18n); });
@@ -166,6 +304,7 @@ function applyTranslations() {
   renderHelp();
   renderStatus();
   if (currentGridInfo) renderFilteredView();
+  renderExperiment();
 }
 
 function setStatus(key, type = 'info', replacements = {}) {
@@ -490,6 +629,16 @@ elements.btnClearFocus.addEventListener('click', clearFocus);
 elements.btnResetResults.addEventListener('click', () => { resetResultControls(); renderFilteredView(); });
 elements.btnExportJson.addEventListener('click', () => exportResults('JSON'));
 elements.btnExportCsv.addEventListener('click', () => exportResults('CSV'));
+elements.btnRunExperiment.addEventListener('click', runExperiment);
+elements.btnExportExperiment.addEventListener('click', exportExperiment);
+elements.tabExplorer.addEventListener('click', () => setActiveToolTab('explorer'));
+elements.tabExperiment.addEventListener('click', () => setActiveToolTab('experiment'));
+[elements.tabExplorer, elements.tabExperiment].forEach((tab) => tab.addEventListener('keydown', (event) => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const experiment = event.key === 'ArrowRight' || event.key === 'End';
+  setActiveToolTab(experiment ? 'experiment' : 'explorer', true);
+}));
 [elements.resultFilterWord, elements.resultFilterMinLength].forEach((element) => element.addEventListener('input', renderFilteredView));
 [elements.resultFilterDirection, elements.resultSort].forEach((element) => element.addEventListener('change', renderFilteredView));
 elements.btnLang.addEventListener('click', toggleLanguage);
@@ -500,11 +649,15 @@ elements.presetSelect.addEventListener('change', (event) => { if (event.target.v
 document.addEventListener('keydown', (event) => {
   trapModalFocus(event);
   if (event.key === 'Escape' && !elements.helpModal.classList.contains('hidden')) closeHelpModal();
-  else if (event.key === 'Enter' && event.ctrlKey && elements.helpModal.classList.contains('hidden')) { event.preventDefault(); analyze(); }
+  else if (event.key === 'Enter' && event.ctrlKey && elements.helpModal.classList.contains('hidden')) {
+    event.preventDefault();
+    if (activeToolTab === 'experiment') runExperiment(); else analyze();
+  }
 });
 
 (function init() {
   const saved = localStorage.getItem('stegogrid-lang');
   if (saved === 'ja' || saved === 'en') currentLang = saved;
   applyTranslations();
+  setActiveToolTab('explorer');
 })();
