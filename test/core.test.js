@@ -119,3 +119,29 @@ test('CSV export neutralizes spreadsheet formula prefixes', () => {
   };
   assert.match(Core.serializeResultsCsv([hit]), /\r\n'=CMD,R,/);
 });
+
+test('seeded random grids and chance experiments are exactly reproducible', () => {
+  assert.deepEqual(Core.generateRandomGrid('DEMO', 3, 4), ['FDYU', 'JVVN', 'XEHP']);
+  const first = Core.runChanceExperiment({ seed: 'DEMO', rows: 8, columns: 8, trials: 20 });
+  const second = Core.runChanceExperiment({ seed: 'DEMO', rows: 8, columns: 8, trials: 20 });
+  assert.deepEqual(first, second);
+  assert.equal(first.fingerprint, 'b310937c');
+  assert.deepEqual(first.groups.three, { trialsWithMatch: 12, totalMatches: 21, trialRate: 0.6 });
+  assert.deepEqual(first.groups.fourPlus, { trialsWithMatch: 0, totalMatches: 0, trialRate: 0 });
+  assert.equal(first.sample.hits[0].word, 'NOW');
+});
+
+test('chance experiment rejects invalid or excessive work before generation', () => {
+  assert.throws(() => Core.runChanceExperiment({ rows: 2 }), (error) => error.code === 'invalidExperimentValue' && error.details.name === 'rows');
+  assert.throws(() => Core.runChanceExperiment({ seed: 'A'.repeat(101) }), (error) => error.code === 'experimentSeedTooLong' && error.details.limit === 100);
+  assert.throws(() => Core.runChanceExperiment({ rows: 30, columns: 30, trials: 500 }), (error) => error.code === 'experimentTooLarge' && error.details.count === 450000);
+});
+
+test('chance experiment JSON preserves reproducibility conditions', () => {
+  const result = Core.runChanceExperiment({ seed: 'EXPORT', rows: 6, columns: 7, trials: 3 });
+  const parsed = JSON.parse(Core.serializeExperimentJson(result));
+  assert.equal(parsed.conditions.seed, 'EXPORT');
+  assert.equal(parsed.conditions.generatedCells, 126);
+  assert.equal(parsed.randomVersion, 'fnv1a-mulberry32-v1');
+  assert.equal(parsed.fingerprint, result.fingerprint);
+});

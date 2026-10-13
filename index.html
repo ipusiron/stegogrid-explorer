@@ -29,6 +29,12 @@
   </header>
 
   <main class="container">
+    <nav class="tool-tabs" role="tablist" data-i18n-aria-label="toolTabsLabel" aria-label="Tool modes">
+      <button type="button" id="tab-explorer" class="tool-tab active" role="tab" aria-selected="true" aria-controls="panel-explorer" tabindex="0" data-i18n="tabExplorer">Grid search</button>
+      <button type="button" id="tab-experiment" class="tool-tab" role="tab" aria-selected="false" aria-controls="panel-experiment" tabindex="-1" data-i18n="tabExperiment">Chance-match experiment</button>
+    </nav>
+
+    <section id="panel-explorer" role="tabpanel" aria-labelledby="tab-explorer">
     <div class="panel-wrapper">
       <!-- Left Panel: Controls -->
       <section class="panel panel-input">
@@ -193,6 +199,88 @@
         </div>
       </section>
     </div>
+    </section>
+
+    <section id="panel-experiment" class="hidden" role="tabpanel" aria-labelledby="tab-experiment">
+      <section class="panel experiment-panel">
+        <h2 data-i18n="experimentTitle">Chance-match experiment</h2>
+        <p data-i18n="experimentIntro">Generate reproducible random A-Z grids and compare how often three-letter and longer words from the built-in list appear by chance.</p>
+        <p class="experiment-caveat" data-i18n="experimentCaveat">This is an empirical comparison under the selected conditions. It does not calculate the probability of a hidden message or prove intent.</p>
+
+        <div class="experiment-controls">
+          <label for="experiment-seed">
+            <span data-i18n="experimentSeed">Seed</span>
+            <input type="text" id="experiment-seed" value="STEGOGRID" maxlength="100" autocomplete="off">
+          </label>
+          <label for="experiment-rows">
+            <span data-i18n="experimentRows">Rows</span>
+            <input type="number" id="experiment-rows" value="12" min="3" max="30" inputmode="numeric">
+          </label>
+          <label for="experiment-columns">
+            <span data-i18n="experimentColumns">Columns</span>
+            <input type="number" id="experiment-columns" value="12" min="3" max="30" inputmode="numeric">
+          </label>
+          <label for="experiment-trials">
+            <span data-i18n="experimentTrials">Trials</span>
+            <input type="number" id="experiment-trials" value="100" min="1" max="500" inputmode="numeric">
+          </label>
+        </div>
+
+        <dl class="experiment-fixed">
+          <div><dt data-i18n="experimentAlphabet">Alphabet</dt><dd>A-Z</dd></div>
+          <div><dt data-i18n="experimentDictionary">Dictionary</dt><dd data-i18n="experimentDictionaryValue">Built-in 50 words</dd></div>
+          <div><dt data-i18n="experimentDirections">Directions</dt><dd data-i18n="experimentDirectionsValue">All 8 directions</dd></div>
+          <div><dt data-i18n="experimentLimit">Work limit</dt><dd data-i18n="experimentLimitValue">250,000 generated cells</dd></div>
+        </dl>
+
+        <div class="experiment-actions">
+          <button type="button" id="btn-run-experiment" class="btn btn-primary" data-i18n="runExperiment">Run experiment</button>
+          <button type="button" id="btn-export-experiment" class="btn btn-secondary" data-i18n="exportExperiment" disabled>Save reproducibility JSON</button>
+        </div>
+        <div id="experiment-message" class="message-area" aria-live="polite"></div>
+
+        <div id="experiment-results" class="experiment-results hidden" aria-live="polite">
+          <div class="experiment-heading-row">
+            <h3 data-i18n="experimentResults">Experiment results</h3>
+            <span id="experiment-fingerprint" class="fingerprint"></span>
+          </div>
+          <p id="experiment-summary" class="visible-summary"></p>
+          <div class="comparison-cards">
+            <article class="comparison-card">
+              <h3 data-i18n="threeLetterWords">Three-letter words</h3>
+              <p class="rate"><strong id="experiment-three-rate">0%</strong></p>
+              <p><span data-i18n="trialsWithMatch">Trials with at least one match</span>: <strong id="experiment-three-trials">0 / 0</strong></p>
+              <p><span data-i18n="totalMatches">Total matches</span>: <strong id="experiment-three-total">0</strong></p>
+            </article>
+            <article class="comparison-card">
+              <h3 data-i18n="fourPlusWords">Words of four or more letters</h3>
+              <p class="rate"><strong id="experiment-four-rate">0%</strong></p>
+              <p><span data-i18n="trialsWithMatch">Trials with at least one match</span>: <strong id="experiment-four-trials">0 / 0</strong></p>
+              <p><span data-i18n="totalMatches">Total matches</span>: <strong id="experiment-four-total">0</strong></p>
+            </article>
+          </div>
+          <p class="experiment-interpretation" data-i18n="experimentInterpretation">The rate is the share of generated grids with at least one match. It is not a theoretical probability or a detection score.</p>
+
+          <div class="experiment-details">
+            <section>
+              <h3 data-i18n="topMatchedWords">Most frequent matches</h3>
+              <p id="experiment-no-top" class="empty-results hidden" data-i18n="noExperimentMatches">No listed word matched in these trials.</p>
+              <div id="experiment-top-wrapper" class="table-wrapper">
+                <table>
+                  <thead><tr><th data-i18n="word">Word</th><th data-i18n="len">Length</th><th data-i18n="matchCount">Matches</th></tr></thead>
+                  <tbody id="experiment-top-body"></tbody>
+                </table>
+              </div>
+            </section>
+            <section>
+              <h3 data-i18n="firstGridSample">First generated grid</h3>
+              <pre id="experiment-sample-grid" class="sample-grid"></pre>
+              <p id="experiment-sample-hits" class="sample-hits"></p>
+            </section>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <!-- Help Modal -->

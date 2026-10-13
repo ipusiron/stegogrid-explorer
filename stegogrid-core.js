@@ -14,6 +14,17 @@
     maxResults: 5000
   });
 
+  const EXPERIMENT_LIMITS = Object.freeze({
+    minRows: 3,
+    maxRows: 30,
+    minColumns: 3,
+    maxColumns: 30,
+    minTrials: 1,
+    maxTrials: 500,
+    maxSeedLength: 100,
+    maxGeneratedCells: 250000
+  });
+
   const COMMON_WORDS = Object.freeze([
     'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'CAN', 'HAD',
     'HER', 'WAS', 'ONE', 'OUR', 'OUT', 'DAY', 'GET', 'HAS', 'HIM', 'HIS',
@@ -262,8 +273,106 @@
     return `${rows.map((row) => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
   }
 
+  function hashSeed(value) {
+    let hash = 2166136261;
+    for (const char of String(value)) {
+      hash ^= char.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  function mulberry32(seed) {
+    let state = seed >>> 0;
+    return function random() {
+      state += 0x6d2b79f5;
+      let value = state;
+      value = Math.imul(value ^ (value >>> 15), value | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function validateExperimentInteger(value, name, min, max) {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < min || number > max) {
+      throw new CoreError('invalidExperimentValue', { name, value, min, max });
+    }
+    return number;
+  }
+
+  function generateRandomGrid(seed, rows, columns) {
+    const height = validateExperimentInteger(rows, 'rows', EXPERIMENT_LIMITS.minRows, EXPERIMENT_LIMITS.maxRows);
+    const width = validateExperimentInteger(columns, 'columns', EXPERIMENT_LIMITS.minColumns, EXPERIMENT_LIMITS.maxColumns);
+    const random = mulberry32(hashSeed(String(seed)));
+    return Array.from({ length: height }, () => Array.from({ length: width }, () => String.fromCharCode(65 + Math.floor(random() * 26))).join(''));
+  }
+
+  function experimentGroup(length) {
+    return length === 3 ? 'three' : 'fourPlus';
+  }
+
+  function runChanceExperiment(options = {}) {
+    const seed = String(options.seed == null ? 'STEGOGRID' : options.seed).trim() || 'STEGOGRID';
+    if (Array.from(seed).length > EXPERIMENT_LIMITS.maxSeedLength) {
+      throw new CoreError('experimentSeedTooLong', { count: Array.from(seed).length, limit: EXPERIMENT_LIMITS.maxSeedLength });
+    }
+    const rows = validateExperimentInteger(options.rows == null ? 12 : options.rows, 'rows', EXPERIMENT_LIMITS.minRows, EXPERIMENT_LIMITS.maxRows);
+    const columns = validateExperimentInteger(options.columns == null ? 12 : options.columns, 'columns', EXPERIMENT_LIMITS.minColumns, EXPERIMENT_LIMITS.maxColumns);
+    const trials = validateExperimentInteger(options.trials == null ? 100 : options.trials, 'trials', EXPERIMENT_LIMITS.minTrials, EXPERIMENT_LIMITS.maxTrials);
+    const generatedCells = rows * columns * trials;
+    if (generatedCells > EXPERIMENT_LIMITS.maxGeneratedCells) {
+      throw new CoreError('experimentTooLarge', { count: generatedCells, limit: EXPERIMENT_LIMITS.maxGeneratedCells });
+    }
+
+    const groups = {
+      three: { trialsWithMatch: 0, totalMatches: 0, trialRate: 0 },
+      fourPlus: { trialsWithMatch: 0, totalMatches: 0, trialRate: 0 }
+    };
+    const wordCounts = new Map();
+    const directions = Object.values(DIRECTIONS);
+    let sample = null;
+
+    for (let trial = 0; trial < trials; trial += 1) {
+      const lines = generateRandomGrid(`${seed}\u0000${trial}`, rows, columns);
+      const gridInfo = buildGrid(lines.join('\n'));
+      const hits = searchGrid(gridInfo, COMMON_WORDS, directions).hits;
+      const matchedGroups = new Set();
+      for (const hit of hits) {
+        const group = experimentGroup(hit.length);
+        groups[group].totalMatches += 1;
+        matchedGroups.add(group);
+        wordCounts.set(hit.word, (wordCounts.get(hit.word) || 0) + 1);
+      }
+      for (const group of matchedGroups) groups[group].trialsWithMatch += 1;
+      if (trial === 0) sample = { lines, hits: hits.map(exportHit) };
+    }
+
+    for (const group of Object.values(groups)) group.trialRate = group.trialsWithMatch / trials;
+    const topWords = [...wordCounts.entries()]
+      .map(([word, count]) => ({ word, length: word.length, group: experimentGroup(word.length), count }))
+      .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word))
+      .slice(0, 10);
+    const fingerprintSource = JSON.stringify({ seed, rows, columns, trials, groups, topWords, sample });
+
+    return {
+      schemaVersion: 1,
+      randomVersion: 'fnv1a-mulberry32-v1',
+      conditions: { seed, rows, columns, trials, generatedCells, alphabet: 'A-Z', dictionaryWords: COMMON_WORDS.length, directions: directions.length },
+      groups,
+      topWords,
+      sample,
+      fingerprint: hashSeed(fingerprintSource).toString(16).padStart(8, '0')
+    };
+  }
+
+  function serializeExperimentJson(result) {
+    return `${JSON.stringify(result, null, 2)}\n`;
+  }
+
   return {
     LIMITS,
+    EXPERIMENT_LIMITS,
     COMMON_WORDS,
     DIRECTIONS,
     CoreError,
@@ -275,6 +384,9 @@
     searchGrid,
     filterAndSortHits,
     serializeResultsJson,
-    serializeResultsCsv
+    serializeResultsCsv,
+    generateRandomGrid,
+    runChanceExperiment,
+    serializeExperimentJson
   };
 });

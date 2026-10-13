@@ -34,6 +34,12 @@ test('the interface exposes complete localization hooks', () => {
   assert.match(script, /renderFilteredView\(\)/);
   assert.match(script, /serializeResultsJson/);
   assert.match(script, /serializeResultsCsv/);
+  for (const id of ['tab-explorer', 'tab-experiment', 'panel-experiment', 'experiment-seed', 'experiment-trials', 'btn-run-experiment', 'btn-export-experiment']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /role="tablist"/);
+  assert.match(script, /runChanceExperiment/);
+  assert.match(script, /ArrowLeft.*ArrowRight/);
 });
 
 test('user-facing DOM rendering does not use innerHTML', () => {
@@ -58,6 +64,10 @@ test('Japanese and English documentation state limits and limitations', () => {
   assert.match(readmeEn, /does not prove/);
   assert.match(readmeJa, /入力した全文は含/);
   assert.match(readmeEn, /full input text/);
+  assert.match(readmeJa, /理論確率、検知率、隠しメッセージの存在確率ではありません/);
+  assert.match(readmeEn, /not a theoretical probability, detection rate, or probability of a hidden message/);
   assert.ok(fs.existsSync(path.join(root, 'assets', 'screenshot.png')));
   assert.ok(fs.existsSync(path.join(root, 'assets', 'en', 'screenshot.png')));
+  assert.ok(fs.existsSync(path.join(root, 'assets', 'screenshot2.png')));
+  assert.ok(fs.existsSync(path.join(root, 'assets', 'en', 'screenshot2.png')));
 });
